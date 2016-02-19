@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/amrav/gdc/client"
-	"github.com/amrav/gdc/proto"
+	"github.com/amrav/sparrow/client"
+	"github.com/amrav/sparrow/proto"
 )
 
 func main() {

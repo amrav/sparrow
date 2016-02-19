@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/amrav/gdc/proto"
+	"github.com/amrav/sparrow/proto"
 	"github.com/fatih/color"
 )
 
