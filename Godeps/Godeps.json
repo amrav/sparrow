@@ -1,0 +1,27 @@
+{
+	"ImportPath": "github.com/amrav/sparrow",
+	"GoVersion": "go1.6",
+	"Deps": [
+		{
+			"ImportPath": "github.com/fatih/color",
+			"Comment": "v0.1-14-g7a5857d",
+			"Rev": "7a5857db0b2752a436d8461d88c42dea0ee191c0"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-colorable",
+			"Rev": "9fdad7c47650b7d2e1da50644c1f4ba7f172f252"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-isatty",
+			"Rev": "56b76bdf51f7708750eac80fa38b952bb9f32639"
+		},
+		{
+			"ImportPath": "golang.org/x/net/websocket",
+			"Rev": "8968c61983e8f51a91b8c0ef25bf739278c89634"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "5eaf0df67e70d6997a9fe0ed24383fa1b01638d3"
+		}
+	]
+}
