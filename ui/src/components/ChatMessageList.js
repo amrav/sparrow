@@ -4,7 +4,7 @@ import ChatMessage from './ChatMessage';
 const ChatMessageList = ({chatMessages}) => (
     <ul>
       {chatMessages.map((msg, idx)=>
-        <ChatMessage {...msg} key={idx} />
+        <ChatMessage {...msg} key={idx}/>
       )}
     </ul>
 );

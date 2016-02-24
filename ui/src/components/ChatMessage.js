@@ -1,7 +1,20 @@
 import React, { PropTypes } from 'react';
 
+const msgStyle = {
+    whiteSpace: 'pre'
+};
+
+const toHtml = (text) => {
+    return text.split("\n").map((line, idx) => (
+        <span key={idx}>
+          {line}
+          <br />
+        </span>
+    ));
+};
+
 const ChatMessage = ({from, text}) => (
-    <li>
+    <li style={msgStyle}>
       <em>{from}:</em> {text}
     </li>
 );

@@ -3,7 +3,6 @@ package client
 import (
 	"bufio"
 	"fmt"
-	"html"
 	"io"
 	"log"
 	"net"
@@ -305,14 +304,14 @@ func (c *Client) Connect(hubAddr string) {
 }
 
 func (c *Client) handleHubMessages() {
-	cyan := color.New(color.FgCyan).SprintFunc()
+	// cyan := color.New(color.FgCyan).SprintFunc()
 	reader := bufio.NewReader(c.hubConn)
 	for {
 		msg, err := reader.ReadString('|')
 		if err != nil {
 			log.Fatal("Failed reading from hub: ", err)
 		}
-		log.Print(cyan("Hub: "), html.UnescapeString(msg))
+		// log.Print(cyan("Hub: "), html.UnescapeString(msg))
 		var hls []listener
 	loop:
 		for {
@@ -354,7 +353,7 @@ func (c *Client) HubMessages(done chan struct{}) chan string {
 	default:
 		panic("Tried adding too many hub listeners")
 	}
-	log.Print("Added hub listener")
+	log.Print("Queued adding hub listener")
 	return ch
 }
 

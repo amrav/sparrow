@@ -16,7 +16,7 @@ ChatWindowComp.propTypes = {
 
 const mapStateToProps = (state) => {
     return {
-        chatMessages: state.getIn(['messages', 'hub_messages']).toJS()
+        chatMessages: state.messages.hubMessages
     };
 };
 
