@@ -2,9 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"regexp"
+	"runtime/pprof"
 	"strings"
 
 	"github.com/amrav/sparrow/client"
@@ -20,7 +24,7 @@ func UiServer(c *client.Client) func(*websocket.Conn) {
 		c.Connect("10.109.49.49:411")
 		for msg := range socketCh {
 			_, err := ws.Write(msg)
-			log.Print("Sent: ", string(msg))
+			// log.Print("Sent: ", string(msg))
 			if err != nil {
 				log.Fatal("Couldn't write to websocket: ", err)
 			}
@@ -31,10 +35,10 @@ func UiServer(c *client.Client) func(*websocket.Conn) {
 func SendHubMessages(c *client.Client, socketCh chan []byte) {
 	done := make(chan struct{})
 	defer close(done)
-	ch := c.HubMessages(done)
-	chatRegexp := regexp.MustCompile(`(?s)<(.+?)>\s(.+)\|`)
+	chatRegexp := regexp.MustCompile(`^<(?s)(.+?)>\s(.+)\|$`)
+	ch := c.HubMessagesMatch(done, chatRegexp)
 	for msg := range ch {
-		matches := chatRegexp.FindSubmatch([]byte(msg))
+		matches := chatRegexp.FindSubmatch(msg)
 		if matches != nil {
 			msg := map[string]string{
 				"type": "chatMessage",
@@ -53,7 +57,27 @@ func SendHubMessages(c *client.Client, socketCh chan []byte) {
 	}
 }
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
 func main() {
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		// capture ctrl+c and stop CPU profiler
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		go func() {
+			for _ = range c {
+				pprof.StopCPUProfile()
+				os.Exit(1)
+			}
+		}()
+		defer pprof.StopCPUProfile()
+	}
 	c := client.New()
 	c.StartActiveMode()
 	c.SetNick(proto.GenerateRandomUsername())

@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -49,8 +50,9 @@ type connClient struct {
 }
 
 type listener struct {
-	Messages chan string
+	Messages chan []byte
 	Done     chan struct{}
+	Regex    *regexp.Regexp
 }
 
 type clientListener struct {
@@ -286,8 +288,9 @@ func (c *Client) Connect(hubAddr string) {
 	go c.handleHubMessages()
 
 	for m := range msg {
-		if strings.HasPrefix(m, "$Lock ") {
-			lock := strings.Fields(m)[1]
+		ms := string(m)
+		if strings.HasPrefix(ms, "$Lock ") {
+			lock := strings.Fields(ms)[1]
 			key := proto.LockToKey(lock)
 			c.MessageHub("$Key %s|", key)
 			//c.MessageHub("$Lock EXTENDEDPROTOCOL/wut? Pk=gdcRef=10.109.49.49|")
@@ -297,7 +300,7 @@ func (c *Client) Connect(hubAddr string) {
 			c.MessageHub("$Version 1,0091|")
 			c.MessageHub(fmt.Sprintf("$MyINFO $ALL %s <gdc V:0.0.0,M:A,H:1/0/0,S:3>$ $10^Q$$%d$|", c.User.Nick, c.User.ShareSize))
 		}
-		if strings.HasPrefix(m, "$Hello ") {
+		if strings.HasPrefix(ms, "$Hello ") {
 			return
 		}
 	}
@@ -305,9 +308,10 @@ func (c *Client) Connect(hubAddr string) {
 
 func (c *Client) handleHubMessages() {
 	// cyan := color.New(color.FgCyan).SprintFunc()
+	yellow := color.New(color.FgYellow).SprintFunc()
 	reader := bufio.NewReader(c.hubConn)
 	for {
-		msg, err := reader.ReadString('|')
+		msg, err := reader.ReadBytes(byte('|'))
 		if err != nil {
 			log.Fatal("Failed reading from hub: ", err)
 		}
@@ -324,12 +328,24 @@ func (c *Client) handleHubMessages() {
 		}
 		for _, hl := range hls {
 			select {
-			case hl.Messages <- msg:
-				c.hubListeners <- hl
 			case <-hl.Done:
 				close(hl.Messages)
+				log.Print("Hub listener sent close")
+				continue
 			default:
-				log.Print("Warning: Unable to write to hub listener, dropping message")
+			}
+			if hl.Regex == nil || hl.Regex.Match(msg) {
+				select {
+				case hl.Messages <- msg:
+					c.hubListeners <- hl
+				case <-hl.Done:
+					close(hl.Messages)
+					log.Print("Hub listener sent close")
+				default:
+					log.Fatal(yellow("Warning: "),
+						"Unable to write to hub listener, dropping message: ", string(msg))
+				}
+			} else {
 				c.hubListeners <- hl
 			}
 		}
@@ -346,15 +362,19 @@ func (c *Client) MsgClient(nick string, msg string, args ...interface{}) {
 	c.outbox <- outboxMsg{nick, msg}
 }
 
-func (c *Client) HubMessages(done chan struct{}) chan string {
-	ch := make(chan string, 100)
+func (c *Client) HubMessagesMatch(done chan struct{}, re *regexp.Regexp) chan []byte {
+	ch := make(chan []byte, 100)
 	select {
-	case c.hubListeners <- listener{ch, done}:
+	case c.hubListeners <- listener{ch, done, re}:
 	default:
 		panic("Tried adding too many hub listeners")
 	}
 	log.Print("Queued adding hub listener")
 	return ch
+}
+
+func (c *Client) HubMessages(done chan struct{}) chan []byte {
+	return c.HubMessagesMatch(done, nil)
 }
 
 func (c *Client) ClientMessages(nick string, done chan struct{}) chan interface{} {
