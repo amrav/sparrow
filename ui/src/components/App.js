@@ -1,10 +1,10 @@
 import React from 'react';
-import ChatWindow from './ChatWindow';
+import TabWindow from './TabWindow';
 
 const App = () => (
-  <div>
-    <ChatWindow />
-  </div>
-)
+    <div>
+      <TabWindow />
+    </div>
+);
 
 export default App;

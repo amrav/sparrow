@@ -1,27 +1,17 @@
 import React, { PropTypes } from 'react';
-import { connect } from 'react-redux';
 import ChatMessageList from './ChatMessageList';
 import ChatTextBox from './ChatTextBox';
 
-const ChatWindowComp = ({chatMessages}) => (
+const ChatWindow = ({chatMessages}) => (
     <div>
       <ChatMessageList chatMessages={chatMessages} />
       <ChatTextBox />
+      <div></div>
     </div>
 );
 
-ChatWindowComp.propTypes = {
+ChatWindow.propTypes = {
     chatMessages: ChatMessageList.propTypes.chatMessages
 };
-
-const mapStateToProps = (state) => {
-    return {
-        chatMessages: state.messages.hubMessages
-    };
-};
-
-const ChatWindow = connect(
-    mapStateToProps
-)(ChatWindowComp);
 
 export default ChatWindow;

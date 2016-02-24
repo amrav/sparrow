@@ -9,6 +9,7 @@ const ChatMessageList = ({chatMessages}) => (
     </ul>
 );
 
+
 ChatMessageList.propTypes = {
     chatMessages: PropTypes.arrayOf(PropTypes.shape(
         ChatMessage.propTypes

@@ -15,7 +15,7 @@ const toHtml = (text) => {
 
 const ChatMessage = ({from, text}) => (
     <li style={msgStyle}>
-      <em>{from}:</em> {text}
+      <strong><em>{from}:</em></strong> {text}
     </li>
 );
 

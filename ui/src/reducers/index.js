@@ -1,23 +1,13 @@
-import Immutable from 'immutable';
 import { combineReducers } from 'redux';
-import { ADD_HUB, CONNECTED_TO_HUB, DISCONNECTED_FROM_HUB, RECEIVE_MESSAGE } from './actions';
-
-const initialState = {
-    hubs: {},
-    messages: {
-        hubMessages: [{
-            from: 'foobar',
-            text: 'Hello, world'
-        }]
-    }
-};
+import { ADD_HUB, CONNECTED_TO_HUB, DISCONNECTED_FROM_HUB, RECEIVE_MESSAGE } from '../actions';
 
 const initialHubState = {
     connected: false
 };
 const initialMessagesState = {
-    hub_messages: []
+    hubMessages: []
 };
+const initialActiveTabsState = ['hubMessages'];
 
 const hubs = (state = initialHubState, action) => {
     let newState, hub;
@@ -58,17 +48,14 @@ const messages = (state = initialMessagesState, action) => {
     }
 };
 
-const reducer = combineReducers({
-    hubs,
-    messages
-});
-
-const sparrowApp = (state, action) => {
-    if (typeof state === 'undefined') {
-        return initialState;
-    } else {
-        return reducer(state, action);
-    }
+const activeTabs = (state = initialActiveTabsState, action) => {
+    return state;
 };
 
-export default sparrowApp;
+const rootReducer = combineReducers({
+    hubs,
+    messages,
+    activeTabs
+});
+
+export default rootReducer;

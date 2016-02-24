@@ -1,14 +1,23 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
 import sparrowApp from './reducers';
 import App from './components/App';
 import { RECEIVE_MESSAGE } from './actions';
+import configureStore from './redux/configureStore';
 
-const store = (window.devToolsExtension ?
-             window.devToolsExtension()(createStore) :
-             createStore)(sparrowApp);
+const initialState = {
+    hubs: {},
+    messages: {
+        hubMessages: [{
+            from: 'foobar',
+            text: 'Hello, world'
+        }]
+    },
+    activeTabs: ['hubMessages']
+};
+
+const store = configureStore(initialState);
 
 const socket = new WebSocket('ws://127.0.0.1:12345/connect');
 socket.onmessage = (event) => {
