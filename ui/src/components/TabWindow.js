@@ -27,8 +27,11 @@ TabWindowComp.propTypes = {
 
 const mapStateToProps = (state) => {
     return {
-        chatThreads: state.messages,
-        activeTabs: state.activeTabs
+        chatThreads: {
+            hubMessages: state.messages.hubMessages,
+            ...state.messages.privateMessages
+        },
+        activeTabs: state.messages.activeTabs
     };
 };
 

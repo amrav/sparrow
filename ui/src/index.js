@@ -12,9 +12,10 @@ const initialState = {
         hubMessages: [{
             from: 'foobar',
             text: 'Hello, world'
-        }]
-    },
-    activeTabs: ['hubMessages']
+        }],
+        privateMessages: {},
+        activeTabs: ['hubMessages']
+    }
 };
 
 const store = configureStore(initialState);
@@ -22,7 +23,7 @@ const store = configureStore(initialState);
 const socket = new WebSocket('ws://127.0.0.1:12345/connect');
 socket.onmessage = (event) => {
     let msg = JSON.parse(event.data);
-    store.dispatch({...msg, type: RECEIVE_MESSAGE});
+    store.dispatch(msg);
 };
 
 render(

@@ -265,7 +265,7 @@ func (c *Client) handleActiveConn(conn net.Conn) {
 			buf := make([]byte, numBytes)
 			_, err = io.ReadFull(reader, buf)
 			if err != nil {
-				log.Print("Couldn't read filelist: ", err)
+				log.Fatal("Couldn't download something: ", err)
 			}
 			log.Print("Finished downloading file")
 			publishToListeners(buf)
@@ -315,7 +315,7 @@ func (c *Client) handleHubMessages() {
 		if err != nil {
 			log.Fatal("Failed reading from hub: ", err)
 		}
-		// log.Print(cyan("Hub: "), html.UnescapeString(msg))
+		// log.Print(cyan("Hub: "), html.UnescapeString(string(msg)))
 		var hls []listener
 	loop:
 		for {

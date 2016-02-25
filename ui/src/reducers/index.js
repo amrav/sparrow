@@ -1,13 +1,15 @@
 import { combineReducers } from 'redux';
-import { ADD_HUB, CONNECTED_TO_HUB, DISCONNECTED_FROM_HUB, RECEIVE_MESSAGE } from '../actions';
+import { ADD_HUB, CONNECTED_TO_HUB, DISCONNECTED_FROM_HUB, RECEIVE_MESSAGE,
+         RECEIVE_PRIVATE_MESSAGE } from '../actions';
 
 const initialHubState = {
     connected: false
 };
 const initialMessagesState = {
-    hubMessages: []
+    hubMessages: [],
+    privateMessages: {},
+    activeTabs: []
 };
-const initialActiveTabsState = ['hubMessages'];
 
 const hubs = (state = initialHubState, action) => {
     let newState, hub;
@@ -33,14 +35,28 @@ const hubs = (state = initialHubState, action) => {
 
 const messages = (state = initialMessagesState, action) => {
     console.log("Got message action: ", action);
+    let newState;
     switch(action.type) {
     case RECEIVE_MESSAGE:
         let newMsgs = [...state.hubMessages, {
             from: action.from,
             text: action.text
         }];
-        let newState = {...state, hubMessages: newMsgs};
-        console.log("New state: ", newState);
+        newState = {...state, hubMessages: newMsgs};
+        return newState;
+    case RECEIVE_PRIVATE_MESSAGE:
+        let newPrivateMessages = {...state.privateMessages};
+        if (!state.privateMessages.hasOwnProperty(action.from)) {
+            newPrivateMessages[action.from] = [];
+        }
+        newPrivateMessages[action.from] = [...newPrivateMessages[action.from], {
+            from: action.from,
+            text: action.text
+        }];
+        newState = {...state, privateMessages: newPrivateMessages};
+        if (state.activeTabs.indexOf(action.from) === -1) {
+            newState.activeTabs = [...state.activeTabs, action.from];
+        }
         return newState;
     default:
         console.log("Returning default state");
@@ -48,14 +64,9 @@ const messages = (state = initialMessagesState, action) => {
     }
 };
 
-const activeTabs = (state = initialActiveTabsState, action) => {
-    return state;
-};
-
 const rootReducer = combineReducers({
     hubs,
-    messages,
-    activeTabs
+    messages
 });
 
 export default rootReducer;

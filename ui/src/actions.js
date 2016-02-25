@@ -6,6 +6,7 @@ export const ADD_HUB = 'ADD_HUB';
 export const CONNECTED_TO_HUB = 'CONNECTED_TO_HUB';
 export const DISCONNECTED_FROM_HUB = 'DISCONNECTED_FROM_HUB';
 export const RECEIVE_MESSAGE = 'RECEIVE_MESSAGE';
+export const RECEIVE_PRIVATE_MESSAGE = 'RECEIVE_PRIVATE_MESSAGE';
 
 /*
  * action creators
@@ -25,4 +26,8 @@ export function disconnectedFromHub(hubIp) {
 
 export function receiveMessage(msg) {
     return { type: RECEIVE_MESSAGE, msg };
+}
+
+export function receivePrivateMessage(msg) {
+    return {...msg, type: RECEIVE_PRIVATE_MESSAGE};
 }
