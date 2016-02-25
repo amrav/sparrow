@@ -6,11 +6,11 @@ export default function configureStore (initialState) {
         window.devToolsExtension ? window.devToolsExtension() : f => f
     ));
 
-    if (module.hot) {
-        module.hot.accept('../reducers', () => {
-            const nextRootReducer = require('../reducers');
-
+    if (module.onReload) {
+        module.onReload(() => {
+            const nextRootReducer = require('../reducers').default;
             store.replaceReducer(nextRootReducer);
+            return true;
         });
     }
     return store;
