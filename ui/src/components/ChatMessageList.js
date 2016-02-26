@@ -13,7 +13,7 @@ const ChatMessageList = ({chatMessages}) => (
 ChatMessageList.propTypes = {
     chatMessages: PropTypes.arrayOf(PropTypes.shape(
         ChatMessage.propTypes
-    ).isRequired).isRequired
+    )).isRequired
 };
 
 export default ChatMessageList;

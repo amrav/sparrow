@@ -33,6 +33,7 @@
     "react-dom": "^0.14.7",
     "react-redux": "^4.4.0",
     "react-tabs": "^0.5.3",
-    "redux": "^3.3.1"
+    "redux": "^3.3.1",
+    "redux-form": "^4.2.0"
   }
 }

@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux';
-import { ADD_HUB, CONNECTED_TO_HUB, DISCONNECTED_FROM_HUB, RECEIVE_MESSAGE,
-         RECEIVE_PRIVATE_MESSAGE } from '../actions';
+import * as actions from '../actions';
+import { reducer as formReducer } from 'redux-form';
 
 const initialHubState = {
     connected: false
@@ -14,16 +14,16 @@ const initialMessagesState = {
 const hubs = (state = initialHubState, action) => {
     let newState, hub;
     switch (action.type) {
-    case ADD_HUB:
+    case actions.ADD_HUB:
         newState = {...state}
         newState[action.hubIp] = initialHubState;
         return newState;
-    case CONNECTED_TO_HUB:
+    case actions.CONNECTED_TO_HUB:
         hub = {...state[action.hubIp], connected: true};
         newState = {...state};
         newState[action.hubIp] = hub;
         return newState;
-    case DISCONNECTED_FROM_HUB:
+    case actions.DISCONNECTED_FROM_HUB:
         hub = {...state[action.hubIp], connected: false};
         newState = {...state};
         newState[action.hubIp] = hub;
@@ -34,17 +34,16 @@ const hubs = (state = initialHubState, action) => {
 };
 
 const messages = (state = initialMessagesState, action) => {
-    console.log("Got message action: ", action);
     let newState;
     switch(action.type) {
-    case RECEIVE_MESSAGE:
+    case actions.RECEIVE_MESSAGE:
         let newMsgs = [...state.hubMessages, {
             from: action.from,
             text: action.text
         }];
         newState = {...state, hubMessages: newMsgs};
         return newState;
-    case RECEIVE_PRIVATE_MESSAGE:
+    case actions.RECEIVE_PRIVATE_MESSAGE:
         let newPrivateMessages = {...state.privateMessages};
         if (!state.privateMessages.hasOwnProperty(action.from)) {
             newPrivateMessages[action.from] = [];
@@ -54,19 +53,73 @@ const messages = (state = initialMessagesState, action) => {
             text: action.text
         }];
         newState = {...state, privateMessages: newPrivateMessages};
-        if (state.activeTabs.indexOf(action.from) === -1) {
-            newState.activeTabs = [...state.activeTabs, action.from];
-        }
         return newState;
     default:
-        console.log("Returning default state");
+        return state;
+    }
+};
+
+const searches = (state = {}, action) => {
+    let newState;
+    switch(action.type) {
+    case actions.NEW_SEARCH:
+        newState = {...state};
+        newState[action.searchText] = {
+            results: []
+        };
+        return newState;
+    default:
+        return state;
+    }
+};
+
+const tabs = (state = {tabList: []}, action) => {
+    let newState;
+    switch(action.type) {
+    case actions.NEW_TAB_MAYBE:
+        for (var i = 0; i < state.tabList.length; i++) {
+            const { type, key } = state.tabList[i];
+            if (type === action.tabType && key === action.key) {
+                return state;
+            }
+        }
+        // fallthrough
+    case actions.NEW_TAB:
+        let newTabList = [...state.tabList, {
+            name: action.name,
+            type: action.tabType,
+            key:  action.key
+        }];
+        let newState = {...state, tabList: newTabList};
+        if (!newState.focused) {
+            newState.focused = {
+                type: action.tabType,
+                key: action.key
+            };
+        }
+        return newState;
+    case actions.FOCUS_TAB:
+        return {...state, focused: {
+            type: action.tabType,
+            key: action.key
+        }};
+    case actions.SELECT_TAB:
+        const tab = state.tabList[action.index];
+        return {...state, focused: {
+            type: tab.type,
+            key: tab.key
+        }};
+    default:
         return state;
     }
 };
 
 const rootReducer = combineReducers({
     hubs,
-    messages
+    messages,
+    form: formReducer,
+    searches,
+    tabs
 });
 
 export default rootReducer;

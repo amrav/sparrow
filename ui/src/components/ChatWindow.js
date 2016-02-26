@@ -11,7 +11,7 @@ const ChatWindow = ({chatMessages}) => (
 );
 
 ChatWindow.propTypes = {
-    chatMessages: ChatMessageList.propTypes.chatMessages
+    ...ChatMessageList.propTypes.chatMessages
 };
 
 export default ChatWindow;
