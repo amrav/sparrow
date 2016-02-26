@@ -56,8 +56,10 @@ function compile(watch) {
             .pipe(buffer())
             .pipe(sourcemaps.init({ loadMaps: true }))
             .pipe(sourcemaps.write('./'))
-            .pipe(gulp.dest('./build'));
-            log('Finished bundling');
+            .pipe(gulp.dest('./build'))
+            .on('end', () => {
+                log('Finished bundling');
+            });
     }
 
     if (watch) {
