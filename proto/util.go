@@ -3,6 +3,7 @@ package proto
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 )
 
 func LockToKey(lock string) string {
@@ -34,4 +35,11 @@ func GenerateRandomUsername() string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
+}
+
+func Escape(str string) string {
+	str = strings.Replace(str, "$", "&#36;", -1)
+	str = strings.Replace(str, "|", "&#124;", -1)
+	str = strings.Replace(str, "&", "&amp;", -1)
+	return str
 }

@@ -1,6 +1,7 @@
 import { combineReducers } from 'redux';
 import * as actions from '../actions';
 import { reducer as formReducer } from 'redux-form';
+import newSocket from '../socket';
 
 const initialHubState = {
     connected: false
@@ -28,6 +29,15 @@ const hubs = (state = initialHubState, action) => {
         newState = {...state};
         newState[action.hubIp] = hub;
         return newState;
+    default:
+        return state;
+    }
+};
+
+const socket = (state = newSocket, action) => {
+    switch(action.type) {
+    case '@@redux/INIT':
+        return socket;
     default:
         return state;
     }
@@ -119,7 +129,8 @@ const rootReducer = combineReducers({
     messages,
     form: formReducer,
     searches,
-    tabs
+    tabs,
+    socket
 });
 
 export default rootReducer;

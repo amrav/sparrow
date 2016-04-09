@@ -18,12 +18,18 @@ import (
 
 type Client struct {
 	Active struct {
-		Ip   net.IP
-		Port int
+		Ip      net.IP
+		Port    int
+		UdpPort int
 	}
-	activeListener  net.Listener
-	hubConn         net.Conn
-	hubListeners    chan listener
+	activeListener net.Listener
+	hubConn        net.Conn
+	hubListeners   chan listener
+
+	// clientListeners is a locked map from nick to the client listeners
+	// for that nick.
+	// "*" is a special key, whose listeners will get all active connection
+	// messages.
 	clientListeners struct {
 		sync.RWMutex
 		m map[string]chan clientListener
@@ -70,6 +76,8 @@ func New() *Client {
 			m map[string]chan clientListener
 		}{m: make(map[string]chan clientListener)},
 	}
+	c.clientListeners.m["*"] = make(chan clientListener, 1000)
+	c.User.ShareSize = 95 * 1024 * 1024 * 1024
 	go c.transmit()
 	return c
 }
@@ -138,12 +146,15 @@ func (c *Client) SetNick(nick string) {
 }
 
 func (c *Client) StartActiveMode() {
+	// Start TCP server
 	ln, err := net.Listen("tcp", ":0")
 	if err != nil {
 		log.Fatal("Failed to start active mode: ", err)
 	}
 	c.activeListener = ln
 	c.Active.Port = ln.Addr().(*net.TCPAddr).Port
+
+	// Get LAN IP
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		log.Fatal("Couldn't get interface addresses: ", err)
@@ -166,6 +177,16 @@ func (c *Client) StartActiveMode() {
 	if c.Active.Ip == nil {
 		log.Fatal("Couldn't find machine IP of form 10.x.x.x")
 	}
+
+	// Start UDP server
+	addr := net.UDPAddr{
+		Port: 0,
+		IP:   c.Active.Ip,
+	}
+	udpConn, err := net.ListenUDP("udp", &addr)
+	c.Active.UdpPort = udpConn.LocalAddr().(*net.UDPAddr).Port
+
+	// Handle active connections
 	go func() {
 		for {
 			conn, err := ln.Accept()
@@ -175,6 +196,44 @@ func (c *Client) StartActiveMode() {
 			go c.handleActiveConn(conn)
 		}
 	}()
+
+	// Handle UDP packets
+	go func() {
+		for {
+			buf := make([]byte, 2048)
+			n, addr, err := udpConn.ReadFromUDP(buf)
+			if err != nil {
+				log.Fatalf("Couldn't read UDP packet: %s", err)
+			}
+			log.Printf("Received UDP packet from %s: %s\n", addr, string(buf[0:n]))
+		}
+	}()
+}
+
+func publishToListeners(msg interface{}, listeners chan clientListener) {
+	var cls []clientListener
+loop:
+	for {
+		select {
+		case l := <-listeners:
+			cls = append(cls, l)
+		default:
+			break loop
+		}
+	}
+
+	for _, cl := range cls {
+		select {
+		case <-cl.Done:
+			close(cl.Messages)
+			log.Print("Client listener sent close")
+		case cl.Messages <- msg:
+			listeners <- cl
+		default:
+			log.Fatal("Error: wasn't able to write to client listener; dropping message")
+			listeners <- cl
+		}
+	}
 }
 
 func (c *Client) handleActiveConn(conn net.Conn) {
@@ -187,36 +246,8 @@ func (c *Client) handleActiveConn(conn net.Conn) {
 	sendClient(conn, remote, "$Nick %s|", c.User.Nick)
 
 	reader := bufio.NewReader(conn)
-	var listeners []clientListener
-	var newListeners chan clientListener
-
-	publishToListeners := func(thing interface{}) {
-		// Get new listeners
-	loop:
-		for {
-			select {
-			case l := <-newListeners:
-				listeners = append(listeners, l)
-			default:
-				break loop
-			}
-		}
-
-		// Publish to listeners
-		fl := listeners[:0]
-		for _, l := range listeners {
-			select {
-			case <-l.Done:
-				close(l.Messages)
-			case l.Messages <- thing:
-				fl = append(fl, l)
-			default:
-				log.Print("Warning: wasn't able to write to client listener; dropping message")
-				fl = append(fl, l)
-			}
-		}
-		listeners = fl
-	}
+	var cls chan clientListener
+	all_cls, _ := c.clientListeners.m["*"]
 
 	for {
 		msg, err := reader.ReadString('|')
@@ -235,12 +266,12 @@ func (c *Client) handleActiveConn(conn net.Conn) {
 			}
 
 			c.clientListeners.Lock()
-			ch, ok := c.clientListeners.m[otherNick]
+			var ok bool
+			cls, ok = c.clientListeners.m[otherNick]
 			if !ok {
 				c.clientListeners.m[otherNick] = make(chan clientListener, 1000)
-				ch = c.clientListeners.m[otherNick]
+				cls = c.clientListeners.m[otherNick]
 			}
-			newListeners = ch
 			c.clientListeners.Unlock()
 
 			sendClient(conn, otherNick,
@@ -253,7 +284,8 @@ func (c *Client) handleActiveConn(conn net.Conn) {
 				"$Key %s|", proto.LockToKey(strings.Fields(msg)[1]))
 		}
 
-		publishToListeners(msg)
+		publishToListeners(msg, cls)
+		publishToListeners(msg, all_cls)
 
 		// Check if we need to download something
 		if strings.HasPrefix(msg, "$ADCSND file") {
@@ -268,7 +300,8 @@ func (c *Client) handleActiveConn(conn net.Conn) {
 				log.Fatal("Couldn't download something: ", err)
 			}
 			log.Print("Finished downloading file")
-			publishToListeners(buf)
+			publishToListeners(buf, cls)
+			publishToListeners(buf, all_cls)
 		}
 	}
 }
@@ -307,7 +340,6 @@ func (c *Client) Connect(hubAddr string) {
 }
 
 func (c *Client) handleHubMessages() {
-	// cyan := color.New(color.FgCyan).SprintFunc()
 	yellow := color.New(color.FgYellow).SprintFunc()
 	reader := bufio.NewReader(c.hubConn)
 	for {
@@ -315,6 +347,8 @@ func (c *Client) handleHubMessages() {
 		if err != nil {
 			log.Fatal("Failed reading from hub: ", err)
 		}
+		// Comment out for less verbosity
+		// cyan := color.New(color.FgCyan).SprintFunc()
 		// log.Print(cyan("Hub: "), html.UnescapeString(string(msg)))
 		var hls []listener
 	loop:
@@ -363,7 +397,7 @@ func (c *Client) MsgClient(nick string, msg string, args ...interface{}) {
 }
 
 func (c *Client) HubMessagesMatch(done chan struct{}, re *regexp.Regexp) chan []byte {
-	ch := make(chan []byte, 100)
+	ch := make(chan []byte, 1000)
 	select {
 	case c.hubListeners <- listener{ch, done, re}:
 	default:
@@ -375,6 +409,17 @@ func (c *Client) HubMessagesMatch(done chan struct{}, re *regexp.Regexp) chan []
 
 func (c *Client) HubMessages(done chan struct{}) chan []byte {
 	return c.HubMessagesMatch(done, nil)
+}
+
+func (c *Client) ClientMessagesMatch(done chan struct{}, re *regexp.Regexp) chan []byte {
+	ch := make(chan []byte, 1000)
+	select {
+	case c.hubListeners <- listener{ch, done, re}:
+	default:
+		panic("Tried adding too many hub listeners")
+	}
+	log.Print("Queued adding hub listener")
+	return ch
 }
 
 func (c *Client) ClientMessages(nick string, done chan struct{}) chan interface{} {
