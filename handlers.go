@@ -76,6 +76,7 @@ func HandleSearchRequests(c *client.Client, sendCh chan interface{},
 					case <-done:
 						return
 					case res := <-resultsCh:
+						log.Printf("Got search result: %+v", res)
 						select {
 						case sendCh <- res:
 						default:

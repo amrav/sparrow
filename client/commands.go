@@ -3,6 +3,7 @@ package client
 import (
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/amrav/sparrow/proto"
@@ -36,17 +37,42 @@ func (c *Client) Search(searchString string, searchResults chan proto.SearchResu
 	c.MessageHub("$Search %s:%d F?T?0?1?%s|", c.Active.Ip.String(), c.Active.UdpPort,
 		proto.Escape(searchString))
 
-	srRegexp := regexp.MustCompile(`\$SR (\S+) (.+?)\x05(\d+) (\d+)/(\d+)\x05TTH:(\W+) .+\|$`)
+	//	srRegexp := regexp.MustCompile(`\$SR (\S+) (.+?)\x05(\d+) (\d+)/(\d+)\x05TTH:(\W+)`)
+	srRegexp := regexp.MustCompile(`\$SR (\S+) (.+?)(\x05\d+)? (\d+)/(\d+)\x05TTH:(\S+)`)
 	for {
 		select {
 		case msg := <-ch:
-			log.Printf("Got active message: %s\n", msg)
 			switch msg := msg.(type) {
 			case string:
 				if strings.HasPrefix(msg, "$SR ") {
-					log.Printf("Search result: %s", msg)
-					m := srRegexp.Match([]byte(msg))
-					log.Printf("Match: %s", m)
+					m := srRegexp.FindStringSubmatch(msg)
+					if m == nil {
+						continue
+					}
+					log.Printf("Result: %s", msg)
+					log.Printf("Match: %+v", m)
+					size, isDirectory := uint64(0), true
+					log.Printf("len(m) = %d", len(m))
+					if m[3] != "" {
+						size, _ = strconv.ParseUint(m[3][1:],
+							10, 64)
+						isDirectory = false
+					}
+					freeSlots, _ := strconv.ParseUint(m[4],
+						10, 64)
+					totalSlots, _ := strconv.ParseUint(m[5],
+						10, 64)
+					sr := proto.SearchResult{
+						Type:        "RECEIVE_SEARCH_RESULT",
+						Nick:        m[1],
+						Name:        m[2],
+						Size:        size,
+						FreeSlots:   freeSlots,
+						TotalSlots:  totalSlots,
+						Tth:         m[6],
+						IsDirectory: isDirectory,
+					}
+					searchResults <- sr
 				}
 			}
 		case <-doneCh:

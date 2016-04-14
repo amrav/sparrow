@@ -27,10 +27,12 @@ type FileList struct {
 }
 
 type SearchResult struct {
+	Type        string `json:"type"`
 	Nick        string `json:"username"`
 	Name        string `json:"name"`
-	Size        string `json:"size"`
+	Size        uint64 `json:"size"`
 	IsDirectory bool   `json:"isDirectory"`
 	FreeSlots   uint64 `json:"freeSlots"`
 	TotalSlots  uint64 `json:"totalSlots"`
+	Tth         string `json:"tth"`
 }
