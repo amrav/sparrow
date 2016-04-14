@@ -14,19 +14,21 @@ type Server struct {
 	conn *websocket.Conn
 	// sendCh is a single channel into which all messages that
 	// need to be sent to the web client are pushed
-	sendCh chan JsonMsg
+	sendCh chan interface{}
 	// recvChs is a map of message type to channel, for dispatching
 	// messages received from the web client to the registered handlers
 	recvChs map[string][]chan JsonMsg
 	// This channel is closed when the server stops
 	doneCh chan struct{}
+	// The server holds a pointer to the connected DC client.
+	// TODO: Add handling for client disconnects and errors.
 	client *client.Client
 }
 
 // New initialises the server, and needs a connected client
 func New(c *client.Client) *Server {
 	s := &Server{
-		sendCh:  make(chan JsonMsg, 1000),
+		sendCh:  make(chan interface{}, 1000),
 		recvChs: make(map[string][]chan JsonMsg),
 		doneCh:  make(chan struct{}),
 		client:  c,
@@ -34,7 +36,7 @@ func New(c *client.Client) *Server {
 	return s
 }
 
-type Handler func(client *client.Client, sendCh chan JsonMsg,
+type Handler func(client *client.Client, sendCh chan interface{},
 	recvCh chan JsonMsg, doneCh chan struct{})
 
 // Register hands a handler a send and receive channel, and allows it

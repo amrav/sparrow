@@ -25,3 +25,12 @@ type FileList struct {
 	Directories []Directory `xml:"Directory"`
 	Files       []File      `xml:"Directory File"`
 }
+
+type SearchResult struct {
+	Nick        string `json:"username"`
+	Name        string `json:"name"`
+	Size        string `json:"size"`
+	IsDirectory bool   `json:"isDirectory"`
+	FreeSlots   uint64 `json:"freeSlots"`
+	TotalSlots  uint64 `json:"totalSlots"`
+}

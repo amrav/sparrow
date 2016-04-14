@@ -199,17 +199,26 @@ func (c *Client) StartActiveMode() {
 
 	// Handle UDP packets
 	go func() {
+		// Send UDP messages to only *-subscribed client
+		// listeners for now.
+		// TODO: Clean up subscription code; stop using
+		// channels as state queues
+		all_cls := c.clientListeners.m["*"]
 		for {
 			buf := make([]byte, 2048)
-			n, addr, err := udpConn.ReadFromUDP(buf)
+			_, _, _ = udpConn.ReadFromUDP(buf)
 			if err != nil {
 				log.Fatalf("Couldn't read UDP packet: %s", err)
 			}
-			log.Printf("Received UDP packet from %s: %s\n", addr, string(buf[0:n]))
+			// log.Printf("Received UDP packet from %s: %s\n", addr, string(buf[0:n]))
+			publishToListeners(string(buf), all_cls)
 		}
 	}()
 }
 
+// TODO: This function is NOT goroutine-safe. Calling it from multiple goroutines
+// may lead to messages not reaching all subscribers, because multiple instances
+// have pulled out listeners from the clientListener channel concurrently.
 func publishToListeners(msg interface{}, listeners chan clientListener) {
 	var cls []clientListener
 loop:
@@ -247,7 +256,7 @@ func (c *Client) handleActiveConn(conn net.Conn) {
 
 	reader := bufio.NewReader(conn)
 	var cls chan clientListener
-	all_cls, _ := c.clientListeners.m["*"]
+	all_cls := c.clientListeners.m["*"]
 
 	for {
 		msg, err := reader.ReadString('|')

@@ -6,10 +6,11 @@ import (
 	"strings"
 
 	"github.com/amrav/sparrow/client"
+	"github.com/amrav/sparrow/proto"
 	"github.com/amrav/sparrow/server"
 )
 
-func SendHubMessages(c *client.Client, sendCh chan server.JsonMsg,
+func SendHubMessages(c *client.Client, sendCh chan interface{},
 	recvCh chan server.JsonMsg, done chan struct{}) {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
@@ -35,7 +36,7 @@ func SendHubMessages(c *client.Client, sendCh chan server.JsonMsg,
 	}
 }
 
-func SendPrivateMessages(c *client.Client, sendCh chan server.JsonMsg,
+func SendPrivateMessages(c *client.Client, sendCh chan interface{},
 	recvCh chan server.JsonMsg, done chan struct{}) {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
@@ -58,23 +59,28 @@ func SendPrivateMessages(c *client.Client, sendCh chan server.JsonMsg,
 	}
 }
 
-func HandleSearchRequests(c *client.Client, sendCh chan server.JsonMsg,
+func HandleSearchRequests(c *client.Client, sendCh chan interface{},
 	recvCh chan server.JsonMsg, done chan struct{}) {
 	log.Printf("HSR: Waiting for message\n")
 	for msg := range recvCh {
 		log.Printf("HSR: Received message %s\n", msg)
 		if msg["type"] == "MAKE_SEARCH_QUERY" {
 			go func() {
-				resultsCh := make(chan client.SearchResult)
+				resultsCh := make(chan proto.SearchResult)
 				defer close(resultsCh)
 				log.Printf("Searching for %s\n", msg["searchText"])
 				// Eventually send this to js client
-				c.Search(msg["searchText"], resultsCh)
-				for _ = range resultsCh {
+				go c.Search(msg["searchText"], resultsCh, done)
+				for {
 					select {
-					// case sendCh <- res:
 					case <-done:
 						return
+					case res := <-resultsCh:
+						select {
+						case sendCh <- res:
+						default:
+							log.Fatalf("Unable to send result for %s to sendCh", msg["searchText"])
+						}
 					}
 				}
 			}()
