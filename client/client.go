@@ -238,9 +238,8 @@ loop:
 			log.Print("Client listener sent close")
 		case cl.Messages <- msg:
 			listeners <- cl
-		default:
-			log.Fatal("Error: wasn't able to write to client listener; dropping message")
-			listeners <- cl
+		case <-time.After(2 * time.Second):
+			log.Fatal("Error: wasn't able to write to client listener; dropping message after 2 seconds")
 		}
 	}
 }

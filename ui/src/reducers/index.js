@@ -154,19 +154,41 @@ const files = (state = {}, action) => {
         let newState = {...state};
         let newTth;
         if (!newState.hasOwnProperty(action.tth)) {
-            newTth = {users: [], size: action.size};
+            newTth = {users: {}, size: action.size};
         } else {
             newTth = {...newState[action.tth]};
         }
-        if (newTth.users.indexOf(action.username) == -1) {
-            newTth.users = [...newTth.users, action.username];
+        if (!newTth.users.hasOwnProperty(action.username)) {
+            newTth.users = {...newTth.users};
+            newTth.users[action.username] = [];
         }
+        let newFiles = newTth.users[action.username];
+        if (newFiles.indexOf(action.name) === -1) {
+            newFiles = [...newFiles, action.name];
+        }
+        newTth.users[action.username] = newFiles;
         newState[action.tth] = newTth;
         return newState;
     default:
         return state;
     }
 };
+
+const users = (state = {}, action) => {
+    switch(action.type) {
+    case actions.RECEIVE_SEARCH_RESULT:
+        let newState = {...state};
+        let newUser = {
+            ...newState[action.username],
+            freeSlots: action.freeSlots,
+            totalSlots: action.totalSlots
+        };
+        newState[action.username] = newUser;
+        return newState;
+    default:
+        return state;
+    }
+}
 
 const rootReducer = combineReducers({
     hubs,
@@ -175,7 +197,8 @@ const rootReducer = combineReducers({
     searches,
     tabs,
     socket,
-    files
+    files,
+    users
 });
 
 export default rootReducer;
