@@ -78,6 +78,20 @@ const searches = (state = {}, action) => {
             results: []
         };
         return newState;
+    case actions.RECEIVE_SEARCH_RESULT:
+        newState = {...state};
+        for (let searchText of Object.keys(newState)) {
+            if (action.name.indexOf(searchText) != -1) {
+                if (newState[searchText].results.indexOf(action.tth) == -1) {
+                    var newResults = [...newState[searchText].results, action.tth];
+                    newState[searchText] = {
+                        ...newState[searchText],
+                        results: newResults
+                    };
+                }
+            }
+        }
+        return newState;
     default:
         return state;
     }
@@ -124,13 +138,44 @@ const tabs = (state = {tabList: []}, action) => {
     }
 };
 
+/*const searchResults = (state = {}, action) => {
+    let newState;
+    switch(action.type) {
+    case actions.RECEIVE_SEARCH_RESULT:
+    }
+};*/
+
+// Files are indexed by TTH, and have an array of UserFiles,
+// which are instances of a file owned by different users,
+// possibly with different names, and in different file paths.
+const files = (state = {}, action) => {
+    switch(action.type) {
+    case actions.RECEIVE_SEARCH_RESULT:
+        let newState = {...state};
+        let newTth;
+        if (!newState.hasOwnProperty(action.tth)) {
+            newTth = {users: [], size: action.size};
+        } else {
+            newTth = {...newState[action.tth]};
+        }
+        if (newTth.users.indexOf(action.username) == -1) {
+            newTth.users = [...newTth.users, action.username];
+        }
+        newState[action.tth] = newTth;
+        return newState;
+    default:
+        return state;
+    }
+};
+
 const rootReducer = combineReducers({
     hubs,
     messages,
     form: formReducer,
     searches,
     tabs,
-    socket
+    socket,
+    files
 });
 
 export default rootReducer;
