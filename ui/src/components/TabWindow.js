@@ -53,7 +53,7 @@ const tabsFromState = (state) => {
         } else if (tab.type === 'search') {
             tabs.push({
                 name: tab.name,
-                comp: <SearchWindow />,
+                comp: <SearchWindow searchText={tab.key}/>,
                 key: tab.key
             });
         }

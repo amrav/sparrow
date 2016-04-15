@@ -4,15 +4,6 @@ const msgStyle = {
     whiteSpace: 'pre'
 };
 
-const toHtml = (text) => {
-    return text.split("\n").map((line, idx) => (
-        <span key={idx}>
-          {line}
-          <br />
-        </span>
-    ));
-};
-
 const ChatMessage = ({from, text}) => (
     <li style={msgStyle}>
       <strong><em>{from}:</em></strong> {text}
