@@ -47,7 +47,7 @@ const tabsFromState = (state) => {
         } else if (tab.type === 'privateMessages') {
             tabs.push({
                 name: tab.name,
-                comp: <ChatWindow chatMessages={state.messages.privateMessages[tab.key]} />,
+                comp: <ChatWindow chatMessages={state.messages.privateMessages[tab.key] || []} />,
                 key: tab.key
             });
         } else if (tab.type === 'search') {
