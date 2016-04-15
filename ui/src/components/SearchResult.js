@@ -4,7 +4,7 @@ import TableRowColumn from 'material-ui/lib/table/table-row-column';
 
 
 const SearchResult = ({tth, displayName, users, size}) => (
-    <TableRow>
+    <TableRow hoverable={true}>
       <TableRowColumn>{displayName}</TableRowColumn>
       <TableRowColumn>
         {truncate(users.map((user, idx) => {return user.nick;}))}
@@ -20,7 +20,7 @@ SearchResult.propTypes = {
         nick: PropTypes.string.isRequired,
         filenames: PropTypes.arrayOf(PropTypes.string).isRequired
     })).isRequired,
-    size: PropTypes.number.isRequired
+    size: PropTypes.string.isRequired
 };
 
 const truncate = (usernames) => {

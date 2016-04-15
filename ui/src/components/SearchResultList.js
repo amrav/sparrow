@@ -7,8 +7,8 @@ import TableHeader from 'material-ui/lib/table/table-header';
 import TableBody from 'material-ui/lib/table/table-body';
 
 const SearchResultList = ({searchResults}) => (
-    <Table>
-      <TableHeader>
+    <Table selectable={false}>
+      <TableHeader displaySelectAll={false}>
         <TableRow>
           <TableHeaderColumn>Name</TableHeaderColumn>
           <TableHeaderColumn>Users</TableHeaderColumn>
