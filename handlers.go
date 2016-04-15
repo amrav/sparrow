@@ -69,14 +69,13 @@ func HandleSearchRequests(c *client.Client, sendCh chan interface{},
 				resultsCh := make(chan proto.SearchResult)
 				defer close(resultsCh)
 				log.Printf("Searching for %s\n", msg["searchText"])
-				// Eventually send this to js client
 				go c.Search(msg["searchText"], resultsCh, done)
 				for {
 					select {
 					case <-done:
 						return
 					case res := <-resultsCh:
-						log.Printf("Got search result: %+v", res)
+						// log.Printf("Got search result: %+v", res)
 						select {
 						case sendCh <- res:
 						default:

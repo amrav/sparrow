@@ -76,17 +76,19 @@ func (s *Server) WsHandler(conn *websocket.Conn) {
 	// receiver
 	go func() {
 		var msg JsonMsg
-		err := websocket.JSON.Receive(s.conn, &msg)
-		if err != nil {
-			log.Fatalf("Couldn't read data from websocket: %s", err)
-		}
-		log.Printf("Received message: %s\n", msg)
+		for {
+			err := websocket.JSON.Receive(s.conn, &msg)
+			if err != nil {
+				log.Fatalf("Couldn't read data from websocket: %s", err)
+			}
+			log.Printf("Received message: %s\n", msg)
 
-		if chs, ok := s.recvChs[msg["type"]]; ok {
-			for _, ch := range chs {
-				log.Printf("Trying to send on channel")
-				ch <- msg
-				log.Printf("Sent on channel")
+			if chs, ok := s.recvChs[msg["type"]]; ok {
+				for _, ch := range chs {
+					log.Printf("Trying to send on channel")
+					ch <- msg
+					log.Printf("Sent on channel")
+				}
 			}
 		}
 	}()

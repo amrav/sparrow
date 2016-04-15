@@ -49,10 +49,10 @@ func (c *Client) Search(searchString string, searchResults chan proto.SearchResu
 					if m == nil {
 						continue
 					}
-					log.Printf("Result: %s", msg)
-					log.Printf("Match: %+v", m)
+					// log.Printf("Result: %s", msg)
+					// log.Printf("Match: %+v", m)
 					size, isDirectory := uint64(0), true
-					log.Printf("len(m) = %d", len(m))
+					// log.Printf("len(m) = %d", len(m))
 					if m[3] != "" {
 						size, _ = strconv.ParseUint(m[3][1:],
 							10, 64)
