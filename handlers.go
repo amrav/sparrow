@@ -65,26 +65,27 @@ func HandleSearchRequests(c *client.Client, sendCh chan interface{},
 	for msg := range recvCh {
 		log.Printf("HSR: Received message %s\n", msg)
 		if msg["type"] == "MAKE_SEARCH_QUERY" {
-			go func() {
-				resultsCh := make(chan proto.SearchResult)
-				defer close(resultsCh)
-				log.Printf("Searching for %s\n", msg["searchText"])
-				go c.Search(msg["searchText"], resultsCh, done)
-				for {
-					select {
-					case <-done:
-						return
-					case res := <-resultsCh:
-						// log.Printf("Got search result: %+v", res)
-						select {
-						case sendCh <- res:
-						default:
-							log.Fatalf("Unable to send result for %s to sendCh", msg["searchText"])
-						}
-					}
-				}
-			}()
+			log.Printf("Searching for %s\n", msg["searchText"])
+			go c.Search(msg["searchText"])
 		}
 	}
-	log.Printf("HSR: Exiting\n")
+}
+
+func HandleSearchResults(c *client.Client, sendCh chan interface{},
+	recvCh chan server.JsonMsg, done chan struct{}) {
+	resultsCh := make(chan proto.SearchResult)
+	c.SearchResults(resultsCh, done)
+	for {
+		select {
+		case <-done:
+			return
+		case res := <-resultsCh:
+			// log.Printf("Got search result: %+v", res)
+			select {
+			case sendCh <- res:
+			default:
+				log.Fatalf("Unable to send result %+v to sendCh", res)
+			}
+		}
+	}
 }

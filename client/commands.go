@@ -4,7 +4,6 @@ import (
 	"log"
 	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/amrav/sparrow/proto"
 )
@@ -29,26 +28,24 @@ func (c *Client) GetFileList(nick string) []byte {
 	panic("Client channel closed without getting file list")
 }
 
-func (c *Client) Search(searchString string, searchResults chan proto.SearchResult,
-	doneCh chan struct{}) {
+func (c *Client) Search(searchString string) {
+	c.MessageHub("$Search %s:%d F?T?0?1?%s|", c.Active.Ip.String(),
+		c.Active.UdpPort, proto.Escape(searchString))
+}
+
+func (c *Client) SearchResults(srCh chan proto.SearchResult, doneCh chan struct{}) {
 	done := make(chan struct{})
 	defer close(done)
 	ch := c.ClientMessages("*", done)
-	c.MessageHub("$Search %s:%d F?T?0?1?%s|", c.Active.Ip.String(), c.Active.UdpPort,
-		proto.Escape(searchString))
 
-	//	srRegexp := regexp.MustCompile(`\$SR (\S+) (.+?)\x05(\d+) (\d+)/(\d+)\x05TTH:(\W+)`)
-	srRegexp := regexp.MustCompile(`\$SR (\S+) (.+?)(\x05\d+)? (\d+)/(\d+)\x05TTH:(\S+)`)
+	srRe := regexp.MustCompile(`^\$SR (\S+) (.+?)(\x05\d+)? (\d+)/(\d+)\x05TTH:(\S+)`)
 	for {
 		select {
 		case msg := <-ch:
 			switch msg := msg.(type) {
 			case string:
-				if strings.HasPrefix(msg, "$SR ") {
-					m := srRegexp.FindStringSubmatch(msg)
-					if m == nil {
-						continue
-					}
+				m := srRe.FindStringSubmatch(msg)
+				if m != nil {
 					// log.Printf("Result: %s", msg)
 					// log.Printf("Match: %+v", m)
 					size, isDirectory := uint64(0), true
@@ -72,11 +69,10 @@ func (c *Client) Search(searchString string, searchResults chan proto.SearchResu
 						Tth:         m[6],
 						IsDirectory: isDirectory,
 					}
-					searchResults <- sr
+					srCh <- sr
 				}
 			}
 		case <-doneCh:
-			log.Printf("Search of %s stopped by doneCh close.", searchString)
 			return
 		}
 	}

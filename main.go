@@ -20,6 +20,7 @@ func main() {
 	s := server.New(c)
 	s.Register("", SendHubMessages)
 	s.Register("", SendPrivateMessages)
+	s.Register("", HandleSearchResults)
 	s.Register("MAKE_SEARCH_QUERY", HandleSearchRequests)
 
 	http.Handle("/connect", websocket.Handler(s.WsHandler))
