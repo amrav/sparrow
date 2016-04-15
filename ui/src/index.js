@@ -5,6 +5,9 @@ import { Provider } from 'react-redux';
 import sparrowApp from './reducers';
 import App from './components/App';
 import configureStore from './redux/configureStore';
+import injectTapEventPlugin from 'react-tap-event-plugin';
+
+injectTapEventPlugin();
 
 const initialState = {
     hubs: {},

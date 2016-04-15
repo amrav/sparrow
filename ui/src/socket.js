@@ -11,7 +11,7 @@ const newSocket = () => {
         } else if (msg.type === RECEIVE_PRIVATE_MESSAGE) {
             store.dispatch(newTabMaybe(msg.from, 'privateMessages', msg.from));
         }
-        store.dispatch(msg);
+        setImmediate(store.dispatch, msg);
     };
     return socket;
 };

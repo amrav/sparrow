@@ -21,10 +21,8 @@ const searchTextToResults = (state, searchText) => {
         }
         return users;
     };
-    console.log('Search: ', search);
     return search.results.map((tth) => {
         let users = tthToUsers(tth);
-        console.log('Users for tth ' + tth + ': ', users);
         return {
             tth: tth,
             users: users,

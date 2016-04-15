@@ -1,29 +1,17 @@
 import React, { PropTypes } from 'react';
+import TableRow from 'material-ui/lib/table/table-row';
+import TableRowColumn from 'material-ui/lib/table/table-row-column';
+
 
 const SearchResult = ({tth, displayName, users, size}) => (
-    <div>
-      <div>{displayName}</div>
-      <div>
-        <ul>
-          {users.map((user, idx)=>
-            <li key={user.nick}>{user.nick}</li>
-          )}
-        </ul>
-      </div>
-      <div>
-        <ul>
-        {users.map((user, idx)=>
-          <li key={user.nick}>{user.filenames}</li>
-        )}
-        </ul>
-      </div>
-    </div>
+    <TableRow>
+      <TableRowColumn>{displayName}</TableRowColumn>
+      <TableRowColumn>
+        {truncate(users.map((user, idx) => {return user.nick;}))}
+      </TableRowColumn>
+      <TableRowColumn>{size}</TableRowColumn>
+    </TableRow>
 );
-
-const debug = (obj) => {
-    console.log('Users: ', obj);
-    return obj;
-};
 
 SearchResult.propTypes = {
     tth: PropTypes.string.isRequired,
@@ -33,6 +21,14 @@ SearchResult.propTypes = {
         filenames: PropTypes.arrayOf(PropTypes.string).isRequired
     })).isRequired,
     size: PropTypes.number.isRequired
+};
+
+const truncate = (usernames) => {
+    let str = usernames.slice(0, 5).join(', ');
+    if (usernames.length > 5) {
+        str += ', …';
+    }
+    return str;
 };
 
 export default SearchResult;
