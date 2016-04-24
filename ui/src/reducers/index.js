@@ -2,17 +2,20 @@ import { combineReducers } from 'redux';
 import * as actions from '../actions';
 import { reducer as formReducer } from 'redux-form';
 import newSocket from '../socket';
+import { fromJS } from 'immutable';
+import { profiler } from '../instrumentation';
 
-const initialHubState = {
+const initialHubState = fromJS({
     connected: false
-};
-const initialMessagesState = {
+});
+
+const initialMessagesState = fromJS({
     hubMessages: [],
     privateMessages: {},
     activeTabs: []
-};
+});
 
-const hubs = (state = initialHubState, action) => {
+/*const hubs = (state = initialHubState, action) => {
     let newState, hub;
     switch (action.type) {
     case actions.ADD_HUB:
@@ -32,166 +35,135 @@ const hubs = (state = initialHubState, action) => {
     default:
         return state;
     }
-};
+};*/
 
 const socket = (state = newSocket, action) => {
-    switch(action.type) {
-    case '@@redux/INIT':
-        return socket;
-    default:
-        return state;
-    }
+    return state;
 };
 
 const messages = (state = initialMessagesState, action) => {
-    let newState;
     switch(action.type) {
     case actions.RECEIVE_MESSAGE:
-        let newMsgs = [...state.hubMessages, {
+        return state.updateIn(['hubMessages'], msgs => msgs.push({
             from: action.from,
             text: action.text
-        }];
-        newState = {...state, hubMessages: newMsgs};
-        return newState;
+        }));
     case actions.RECEIVE_PRIVATE_MESSAGE:
-        let newPrivateMessages = {...state.privateMessages};
-        if (!state.privateMessages.hasOwnProperty(action.from)) {
-            newPrivateMessages[action.from] = [];
+        let newState = state;
+        if (!state.hasIn(['privateMessages', action.from])) {
+            newState = state.setIn(['privateMessages', action.from], fromJS([]));
         }
-        newPrivateMessages[action.from] = [...newPrivateMessages[action.from], {
+        return newState.updateIn(['privateMessages', action.from], msgs => msgs.push({
             from: action.from,
             text: action.text
-        }];
-        newState = {...state, privateMessages: newPrivateMessages};
-        return newState;
+        }));
     default:
         return state;
     }
 };
 
-const searches = (state = {}, action) => {
-    let newState;
+const searches = (state = fromJS({}), action) => {
     switch(action.type) {
     case actions.NEW_SEARCH:
-        newState = {...state};
-        newState[action.searchText] = {
-            results: []
-        };
-        return newState;
+        return state.set(action.searchText, fromJS({results: []}));
     case actions.RECEIVE_SEARCH_RESULT:
-        newState = {...state};
-        for (let searchText of Object.keys(newState)) {
-            if (action.name.indexOf(searchText) != -1) {
-                if (newState[searchText].results.indexOf(action.tth) == -1) {
-                    var newResults = [...newState[searchText].results, action.tth];
-                    newState[searchText] = {
-                        ...newState[searchText],
-                        results: newResults
-                    };
-                }
-            }
+        let timer = profiler.start('searches');
+        let newState = state;
+        for (let act of action.actions) {
+            newState.keySeq().filter(
+                // sequence of all search texts that would match search result
+                st => act.name.toLowerCase().indexOf(st.toLowerCase()) !== -1
+            ).map(st => {
+                // Push TTH into results of each search text, if not
+                // already present
+                newState = newState.updateIn(
+                    [st, 'results'],
+                    res => res.contains(act.tth)? res : res.push(act.tth)
+                );
+            }).cacheResult(); // force evaluation
         }
+        timer.stop('searches');
         return newState;
     default:
         return state;
     }
 };
 
-const tabs = (state = {tabList: []}, action) => {
-    let newState;
+const tabs = (state = fromJS({tabList: []}), action) => {
     switch(action.type) {
     case actions.NEW_TAB_MAYBE:
-        for (var i = 0; i < state.tabList.length; i++) {
-            const { type, key } = state.tabList[i];
-            if (type === action.tabType && key === action.key) {
-                return state;
-            }
+        let tabList = state.get('tabList');
+        let tabExists = state.get('tabList').find(
+            ({type, key}) => type === action.tabType && key === action.key
+        );
+        if (tabExists) {
+            return state;
         }
         // fallthrough
     case actions.NEW_TAB:
-        let newTabList = [...state.tabList, {
+        return state.update('tabList', l => l.push({
             name: action.name,
             type: action.tabType,
             key:  action.key
-        }];
-        let newState = {...state, tabList: newTabList};
-        if (!newState.focused) {
-            newState.focused = {
-                type: action.tabType,
-                key: action.key
-            };
-        }
-        return newState;
+        }));
     case actions.FOCUS_TAB:
-        return {...state, focused: {
+        return state.set('focused', {
             type: action.tabType,
             key: action.key
-        }};
+        });
     case actions.SELECT_TAB:
-        const tab = state.tabList[action.index];
-        return {...state, focused: {
-            type: tab.type,
-            key: tab.key
-        }};
+        const tab = state.getIn(['tabList', action.index]);
+        return state.set('focused', tab);
     default:
         return state;
     }
 };
-
-/*const searchResults = (state = {}, action) => {
-    let newState;
-    switch(action.type) {
-    case actions.RECEIVE_SEARCH_RESULT:
-    }
-};*/
 
 // Files are indexed by TTH, and have an array of UserFiles,
 // which are instances of a file owned by different users,
 // possibly with different names, and in different file paths.
-const files = (state = {}, action) => {
+
+const files = (state = fromJS({}), action) => {
     switch(action.type) {
     case actions.RECEIVE_SEARCH_RESULT:
-        let newState = {...state};
-        let newTth;
-        if (!newState.hasOwnProperty(action.tth)) {
-            newTth = {users: {}, size: action.size};
-        } else {
-            newTth = {...newState[action.tth]};
-        }
-        if (!newTth.users.hasOwnProperty(action.username)) {
-            newTth.users = {...newTth.users};
-            newTth.users[action.username] = [];
-        }
-        let newFiles = newTth.users[action.username];
-        if (newFiles.indexOf(action.name) === -1) {
-            newFiles = [...newFiles, action.name];
-        }
-        newTth.users[action.username] = newFiles;
-        newState[action.tth] = newTth;
+        let timer = profiler.start('files');
+        let newState = state;
+        action.actions.map(act => newState = newState.update(
+            act.tth,
+            (o = fromJS({users: {}, size: act.size})) => o
+        ).updateIn(
+            [act.tth, 'users', act.username],
+            (files = fromJS([])) => files.contains(act.name) ?
+                files : files.push(act.name)
+        ));
+        timer.stop();
         return newState;
     default:
         return state;
     }
 };
 
-const users = (state = {}, action) => {
+const users = (state = fromJS({}), action) => {
     switch(action.type) {
     case actions.RECEIVE_SEARCH_RESULT:
-        let newState = {...state};
-        let newUser = {
-            ...newState[action.username],
-            freeSlots: action.freeSlots,
-            totalSlots: action.totalSlots
-        };
-        newState[action.username] = newUser;
+        let timer = profiler.start('users');
+        // console.log('users reducer started');
+        let newState = state;
+        action.actions.map(act => newState = newState.update(
+            act.username,
+            (user = fromJS({})) => user
+                .set('freeSlots', act.freeSlots)
+                .set('totalSlots', act.totalSlots)
+        ));
+        timer.stop();
         return newState;
     default:
         return state;
     }
-}
+};
 
 const rootReducer = combineReducers({
-    hubs,
+//    hubs,
     messages,
     form: formReducer,
     searches,

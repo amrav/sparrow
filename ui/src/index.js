@@ -9,10 +9,7 @@ import injectTapEventPlugin from 'react-tap-event-plugin';
 
 injectTapEventPlugin();
 
-const initialState = {
-    hubs: {},
-    searches: {}
-};
+const initialState = {};
 
 export const store = configureStore(initialState);
 
