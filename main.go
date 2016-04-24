@@ -22,6 +22,7 @@ func main() {
 	s.Register("", SendPrivateMessages)
 	s.Register("", HandleSearchResults)
 	s.Register("MAKE_SEARCH_QUERY", HandleSearchRequests)
+	s.Register("DOWNLOAD_FILE", HandleDownloadFile)
 
 	http.Handle("/connect", websocket.Handler(s.WsHandler))
 	http.Handle("/", http.FileServer(http.Dir("ui")))

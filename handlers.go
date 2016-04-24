@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -113,6 +114,25 @@ func HandleSearchResults(c *client.Client, sendCh chan interface{},
 				debounceCh = time.After(1 * time.Second)
 			}
 			// log.Printf("Got search result: %+v", res)
+		}
+	}
+}
+
+func HandleDownloadFile(c *client.Client, sendCh chan interface{},
+	recvCh chan server.JsonMsg, done chan struct{}) {
+	for msg := range recvCh {
+		if msg["type"] == "DOWNLOAD_FILE" {
+			log.Printf("Downloading file: %s (%s) from %s", msg["fileName"], msg["tth"], msg["nick"])
+			go func() {
+				progressCh := make(chan int, 10)
+				size, _ := strconv.ParseUint(msg["size"], 10, 64)
+				go c.DownloadFile(msg["fileName"], msg["tth"], msg["nick"], size, progressCh)
+				select {
+				case <-progressCh:
+					log.Printf("Download complete")
+					return
+				}
+			}()
 		}
 	}
 }
