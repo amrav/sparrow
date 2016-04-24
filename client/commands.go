@@ -4,6 +4,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/amrav/sparrow/proto"
 )
@@ -39,6 +40,7 @@ func (c *Client) SearchResults(srCh chan proto.SearchResult, doneCh chan struct{
 	ch := c.ClientMessages("*", done)
 
 	srRe := regexp.MustCompile(`^\$SR (\S+) (.+?)(\x05\d+)? (\d+)/(\d+)\x05TTH:(\S+)`)
+	sent, maxSent := 0, 20000
 	for {
 		select {
 		case msg := <-ch:
@@ -69,7 +71,15 @@ func (c *Client) SearchResults(srCh chan proto.SearchResult, doneCh chan struct{
 						Tth:         m[6],
 						IsDirectory: isDirectory,
 					}
-					srCh <- sr
+					if sent < maxSent {
+						select {
+						case srCh <- sr:
+							log.Printf("Sent result: %+v", sr)
+						case <-time.After(2 * time.Second):
+							log.Fatal("Search results channel blocked too long")
+						}
+						sent += 1
+					}
 				}
 			}
 		case <-doneCh:

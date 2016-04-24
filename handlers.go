@@ -4,6 +4,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/amrav/sparrow/client"
 	"github.com/amrav/sparrow/proto"
@@ -71,21 +72,47 @@ func HandleSearchRequests(c *client.Client, sendCh chan interface{},
 	}
 }
 
+// HandleSearchResults listens for incoming search results
 func HandleSearchResults(c *client.Client, sendCh chan interface{},
 	recvCh chan server.JsonMsg, done chan struct{}) {
 	resultsCh := make(chan proto.SearchResult)
-	c.SearchResults(resultsCh, done)
+	go c.SearchResults(resultsCh, done)
+	var srsBatch []proto.SearchResult
+	var debounceCh <-chan time.Time
+	const MAX_BATCH_SIZE = 1000
+
+	sendBatchedSearchResults := func() {
+		// Copy batched search results into new slice,
+		// since it'll be overwritten by new results
+		srs := make([]proto.SearchResult, len(srsBatch), len(srsBatch))
+		copy(srs, srsBatch)
+		select {
+		case sendCh <- srs:
+		default:
+			log.Fatalf("Unable to send result %+v to sendCh", srs)
+		}
+		// allow sent search results to be GC-d
+		srsBatch = nil
+		// Don't wait for debounce signal. This will
+		// be set the next time a search result comes in.
+		debounceCh = nil
+	}
 	for {
 		select {
 		case <-done:
 			return
+		case <-debounceCh:
+			log.Printf("Sending batched search results after timer")
+			sendBatchedSearchResults()
 		case res := <-resultsCh:
-			// log.Printf("Got search result: %+v", res)
-			select {
-			case sendCh <- res:
-			default:
-				log.Fatalf("Unable to send result %+v to sendCh", res)
+			srsBatch = append(srsBatch, res)
+			if len(srsBatch) == MAX_BATCH_SIZE {
+				log.Printf("Sending batched search results after capacity")
+				sendBatchedSearchResults()
+			} else {
+				debounceCh = time.After(1 * time.Second)
 			}
+			// log.Printf("Got search result: %+v", res)
 		}
 	}
 }
