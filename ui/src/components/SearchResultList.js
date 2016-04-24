@@ -6,7 +6,7 @@ import TableRow from 'material-ui/lib/table/table-row';
 import TableHeader from 'material-ui/lib/table/table-header';
 import TableBody from 'material-ui/lib/table/table-body';
 
-const SearchResultList = ({searchResults}) => (
+const SearchResultList = ({tths}) => (
     <Table selectable={false}>
       <TableHeader displaySelectAll={false}>
         <TableRow>
@@ -16,8 +16,8 @@ const SearchResultList = ({searchResults}) => (
         </TableRow>
       </TableHeader>
       <TableBody>
-        {searchResults.map((sr, idx)=>
-          <SearchResult key={sr.tth} {...sr}/>
+        {tths.map((tth, idx)=>
+          <SearchResult key={tth} tth={tth}/>
         )}
       </TableBody>
     </Table>

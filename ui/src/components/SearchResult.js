@@ -5,23 +5,20 @@ import TableRowColumn from 'material-ui/lib/table/table-row-column';
 import { makeTthToDisplayName, makeTthToUsers, makeHumanFileSize } from '../selectors';
 
 
-const SearchResult = ({tth, displayName, users, size}) => (
+const SearchResultComp = ({tth, displayName, users, size}) => (
     <TableRow hoverable={true}>
       <TableRowColumn>{displayName}</TableRowColumn>
       <TableRowColumn>
-        {truncate(users.map((user, idx) => {return user.nick;}))}
+        {truncate(users)}
       </TableRowColumn>
       <TableRowColumn>{size}</TableRowColumn>
     </TableRow>
 );
 
-SearchResult.propTypes = {
+SearchResultComp.propTypes = {
     tth: PropTypes.string.isRequired,
     displayName: PropTypes.string.isRequired,
-    users: PropTypes.arrayOf(PropTypes.shape({
-        nick: PropTypes.string.isRequired,
-        filenames: PropTypes.arrayOf(PropTypes.string).isRequired
-    })).isRequired,
+    users: PropTypes.arrayOf(PropTypes.string).isRequired,
     size: PropTypes.string.isRequired
 };
 
