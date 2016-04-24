@@ -3,6 +3,7 @@ package client
 import (
 	"bufio"
 	"fmt"
+	"html"
 	"io"
 	"log"
 	"net"
@@ -84,7 +85,7 @@ func New() *Client {
 
 func sendClient(conn net.Conn, nick string, msg string, args ...interface{}) {
 	msg = fmt.Sprintf(msg, args...)
-	magenta := color.New(color.FgMagenta).SprintFunc()
+	magenta := color.New(color.FgMagenta).SprintfFunc()
 	_, err := conn.Write([]byte(msg))
 	if err != nil {
 		log.Fatal("Error sending message to client: ", nick, ": ", err)
@@ -126,7 +127,7 @@ func (c *Client) transmit() {
 				if _, ok := clientMsgs[u.Nick]; !ok {
 					clientMsgs[u.Nick] = make(chan string, 1000)
 				}
-				// Run client transmitter
+				// Run transmitter per connected client
 				go func(ch chan string) {
 					for msg := range ch {
 						sendClient(u.Conn, u.Nick, msg)
@@ -238,20 +239,21 @@ loop:
 			log.Print("Client listener sent close")
 		case cl.Messages <- msg:
 			listeners <- cl
-		case <-time.After(2 * time.Second):
+		case <-time.After(1 * time.Second):
 			log.Fatal("Error: wasn't able to write to client listener; dropping message after 2 seconds")
 		}
 	}
 }
 
 func (c *Client) handleActiveConn(conn net.Conn) {
+	defer conn.Close()
 	remote := conn.RemoteAddr().String()
 	otherNick := remote
 	log.Print("Handling connection from: ", remote)
 
-	blue := color.New(color.FgHiBlue).SprintFunc()
+	blue := color.New(color.FgBlue).SprintfFunc()
 
-	sendClient(conn, remote, "$Nick %s|", c.User.Nick)
+	sendClient(conn, remote, "$MyNick %s|", c.User.Nick)
 
 	reader := bufio.NewReader(conn)
 	var cls chan clientListener
@@ -283,11 +285,12 @@ func (c *Client) handleActiveConn(conn net.Conn) {
 			c.clientListeners.Unlock()
 
 			sendClient(conn, otherNick,
-				"$Lock EXTENDEDPROTOCOL/wut? Pk=gdcRef=10.109.49.49|")
-			sendClient(conn, otherNick,
-				"$Supports MiniSlots XmlBZList ADCGet TTHL TTHF|")
+				"$Lock EXTENDEDPROTOCOL/wut? Pk=gdc,Ref=10.109.49.49:411|")
 		}
 		if strings.HasPrefix(msg, "$Lock") {
+			sendClient(conn, otherNick,
+				"$Supports MiniSlots XmlBZList ADCGet TTHL TTHF|")
+			sendClient(conn, otherNick, "$Direction Download 29000|")
 			sendClient(conn, otherNick,
 				"$Key %s|", proto.LockToKey(strings.Fields(msg)[1]))
 		}
@@ -302,6 +305,7 @@ func (c *Client) handleActiveConn(conn net.Conn) {
 			if err != nil {
 				log.Fatal("Error parsing numBytes: ", err)
 			}
+			log.Printf("Downloading file: %d bytes", numBytes)
 			buf := make([]byte, numBytes)
 			_, err = io.ReadFull(reader, buf)
 			if err != nil {
@@ -310,6 +314,25 @@ func (c *Client) handleActiveConn(conn net.Conn) {
 			log.Print("Finished downloading file")
 			publishToListeners(buf, cls)
 			publishToListeners(buf, all_cls)
+
+			// Remove the listener queue from nick-listener map
+			// so it can be GC'd
+			c.clientListeners.Lock()
+			delete(c.clientListeners.m, otherNick)
+			c.clientListeners.Unlock()
+			// Close the all the listeners' channels to notify
+			// them we're done
+		loop:
+			for {
+				select {
+				case l := <-cls:
+					close(l.Messages)
+				default:
+					break loop
+				}
+			}
+			// We're done with this active connection
+			return
 		}
 	}
 }
@@ -348,7 +371,7 @@ func (c *Client) Connect(hubAddr string) {
 }
 
 func (c *Client) handleHubMessages() {
-	yellow := color.New(color.FgYellow).SprintFunc()
+	yellow := color.New(color.FgYellow).SprintfFunc()
 	reader := bufio.NewReader(c.hubConn)
 	for {
 		msg, err := reader.ReadBytes(byte('|'))
@@ -356,8 +379,8 @@ func (c *Client) handleHubMessages() {
 			log.Fatal("Failed reading from hub: ", err)
 		}
 		// Comment out for less verbosity
-		// cyan := color.New(color.FgCyan).SprintFunc()
-		// log.Print(cyan("Hub: "), html.UnescapeString(string(msg)))
+		cyan := color.New(color.FgCyan).SprintFunc()
+		log.Print(cyan("Hub: "), html.UnescapeString(string(msg)))
 		var hls []listener
 	loop:
 		for {
