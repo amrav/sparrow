@@ -24,9 +24,7 @@ const SearchResultList = ({searchResults}) => (
 );
 
 SearchResultList.propTypes = {
-    searchResults: PropTypes.arrayOf(PropTypes.shape(
-        SearchResult.propTypes
-    )).isRequired
+    tths: PropTypes.arrayOf(PropTypes.string).isRequired
 };
 
 export default SearchResultList;

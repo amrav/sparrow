@@ -35,19 +35,21 @@ TabWindowComp.propTypes = {
 };
 
 const tabsFromState = (state) => {
+    let stateTabs = state.tabs.toJS();
+    let messages = state.messages.toJS();
     let tabs = [];
-    for (var i = 0; i < state.tabs.tabList.length; i++) {
-        const tab = state.tabs.tabList[i];
+    for (var i = 0; i < stateTabs.tabList.length; i++) {
+        const tab = stateTabs.tabList[i];
         if (tab.type === 'hubMessages') {
             tabs.push({
                 name: tab.name,
-                comp: <ChatWindow chatMessages={state.messages.hubMessages} />,
+                comp: <ChatWindow chatMessages={messages.hubMessages} />,
                 key: tab.key
             });
         } else if (tab.type === 'privateMessages') {
             tabs.push({
                 name: tab.name,
-                comp: <ChatWindow chatMessages={state.messages.privateMessages[tab.key] || []} />,
+                comp: <ChatWindow chatMessages={messages.privateMessages[tab.key] || []} />,
                 key: tab.key
             });
         } else if (tab.type === 'search') {
@@ -68,10 +70,13 @@ const handleSelect = (dispatch) => {
 };
 
 const selectedIndex = (state) => {
-    let i;
-    let focused = state.tabs.focused;
-    for (i = 0; i < state.tabs.tabList.length; ++i) {
-        let tab = state.tabs.tabList[i];
+    let stateTabs = state.tabs.toJS();
+    let focused = stateTabs.focused;
+    if (!focused) {
+        return 0;
+    }
+    for (let i = 0; i < stateTabs.tabList.length; ++i) {
+        let tab = stateTabs.tabList[i];
         if (tab.type === focused.type && tab.key === focused.key) {
             return i;
         }
