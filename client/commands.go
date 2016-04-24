@@ -1,9 +1,13 @@
 package client
 
 import (
+	"io/ioutil"
 	"log"
+	"os/user"
+	"path"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/amrav/sparrow/proto"
@@ -13,7 +17,7 @@ func (c *Client) GetFileList(nick string) []byte {
 	done := make(chan struct{})
 	defer close(done)
 	ch := c.ClientMessages(nick, done)
-	c.MessageHub("$ConnectToMe %s %s:%d", nick,
+	c.MessageHub("$ConnectToMe %s %s:%d|", nick,
 		c.Active.Ip.String(), c.Active.Port)
 	c.MsgClient(nick, "$Direction Download 29000")
 	c.MsgClient(nick, "$ADCGET file files.xml.bz2 0 -1|")
@@ -84,6 +88,35 @@ func (c *Client) SearchResults(srCh chan proto.SearchResult, doneCh chan struct{
 			}
 		case <-doneCh:
 			return
+		}
+	}
+}
+
+func (c *Client) DownloadFile(name string, tth string, nick string, size uint64, progressCh chan int) {
+	done := make(chan struct{})
+	defer close(done)
+	ch := c.ClientMessages(nick, done)
+	c.MessageHub("$ConnectToMe %s %s:%d|", nick,
+		c.Active.Ip.String(), c.Active.Port)
+
+	for msg := range ch {
+		switch msg := msg.(type) {
+		case string:
+			if strings.HasPrefix(msg, "$Key ") {
+				// Handshake complete
+				c.MsgClient(nick, "$ADCGET file TTH/%s 0 %d|", tth, size)
+			}
+		case []byte:
+			log.Printf("Got file: %d bytes", len(msg))
+			if progressCh != nil {
+				close(progressCh)
+			}
+			usr, _ := user.Current()
+			dir := usr.HomeDir
+			err := ioutil.WriteFile(path.Join(dir, "DC-sparrow", name), msg, 0644)
+			if err != nil {
+				log.Fatal("Couldn't write file: ", err)
+			}
 		}
 	}
 }
