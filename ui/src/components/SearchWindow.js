@@ -11,7 +11,7 @@ const SearchWindowComp = ({searchText, tths}) => (
 
 const mapStateToProps = (state, { searchText }) => {
     return {
-        tths: state.searches.getIn([searchText, 'results']).toJS()
+        tths: state.searches.getIn([searchText, 'results'])
     };
 };
 

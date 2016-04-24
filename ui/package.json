@@ -36,6 +36,7 @@
     "material-ui": "^0.14.4",
     "react": "^15.0.1",
     "react-dom": "^15.0.1",
+    "react-immutable-proptypes": "^1.7.1",
     "react-infinite": "^0.9.2",
     "react-redux": "^4.4.5",
     "react-tabs": "^0.5.3",

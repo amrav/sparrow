@@ -5,6 +5,7 @@ import TableHeaderColumn from 'material-ui/lib/table/table-header-column';
 import TableRow from 'material-ui/lib/table/table-row';
 import TableHeader from 'material-ui/lib/table/table-header';
 import TableBody from 'material-ui/lib/table/table-body';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 
 const SearchResultList = ({tths}) => (
     <Table selectable={false}>
@@ -24,7 +25,7 @@ const SearchResultList = ({tths}) => (
 );
 
 SearchResultList.propTypes = {
-    tths: PropTypes.arrayOf(PropTypes.string).isRequired
+    tths: ImmutablePropTypes.listOf(PropTypes.string).isRequired
 };
 
 export default SearchResultList;
