@@ -14,7 +14,7 @@ export const makeTthToDisplayName = () => {
     return createSelector(
         getTth, getFilesForTth,
         (tth, files) => {
-            let timer = profiler.start('makeTthToDisplayName');
+            let timer = profiler.start('tthToDisplayName');
             files = files.toJS();
             // fileMemo[tth] = files;
             let frequencies = {};
@@ -24,7 +24,7 @@ export const makeTthToDisplayName = () => {
                     let parts = path.split('\\');
                     let name = parts[parts.length - 1];
                     // Short circuit
-                    timer.stop('makeTthToDisplayName');
+                    timer.stop('tthToDisplayName');
                     return name;
                     if (!frequencies.hasOwnProperty(name)) {
                         frequencies[name] = 1;
@@ -45,10 +45,10 @@ export const makeTthToUsers = () => {
     return createSelector(
         [getTth, getUsersForTth],
         (tth, users) => {
-            let timer = profiler.start('makeTthToUsers');
+            let timer = profiler.start('tthToUsers');
             users = users.toJS();
             // short circuit
-            timer.stop('makeTthToUsers');
+            timer.stop('tthToUsers');
             return Object.keys(users);
             for (let nick of Object.keys(users)) {
                 users.push({
