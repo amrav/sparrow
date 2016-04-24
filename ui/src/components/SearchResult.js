@@ -1,6 +1,8 @@
+import { connect } from 'react-redux';
 import React, { PropTypes } from 'react';
 import TableRow from 'material-ui/lib/table/table-row';
 import TableRowColumn from 'material-ui/lib/table/table-row-column';
+import { makeTthToDisplayName, makeTthToUsers, makeHumanFileSize } from '../selectors';
 
 
 const SearchResult = ({tth, displayName, users, size}) => (
@@ -30,5 +32,23 @@ const truncate = (usernames) => {
     }
     return str;
 };
+
+const makeMapStateToProps = () => {
+    const tthToDisplayName = makeTthToDisplayName();
+    const tthToUsers = makeTthToUsers();
+    const humanFileSize = makeHumanFileSize();
+    const mapStateToProps = (state, props) => {
+        return {
+            displayName: tthToDisplayName(state, props),
+            users: tthToUsers(state, props),
+            size: humanFileSize(state, props)
+        };
+    };
+    return mapStateToProps;
+};
+
+const SearchResult = connect(
+    makeMapStateToProps
+)(SearchResultComp);
 
 export default SearchResult;
