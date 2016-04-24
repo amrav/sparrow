@@ -3,15 +3,16 @@ import React, { PropTypes } from 'react';
 import TableRow from 'material-ui/lib/table/table-row';
 import TableRowColumn from 'material-ui/lib/table/table-row-column';
 import { makeTthToDisplayName, makeTthToUsers, makeHumanFileSize } from '../selectors';
+import DownloadButton from './DownloadButton';
 
-
-const SearchResultComp = ({tth, displayName, users, size}) => (
+const SearchResultComp = ({tth, displayName, users, size, onDownload}) => (
     <TableRow hoverable={true}>
       <TableRowColumn>{displayName}</TableRowColumn>
       <TableRowColumn>
         {truncate(users)}
       </TableRowColumn>
       <TableRowColumn>{size}</TableRowColumn>
+      <TableRowColumn><DownloadButton tth={tth}></DownloadButton></TableRowColumn>
     </TableRow>
 );
 

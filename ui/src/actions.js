@@ -13,6 +13,7 @@ export const NEW_TAB = 'NEW_TAB';
 export const NEW_TAB_MAYBE = 'NEW_TAB_MAYBE';
 export const FOCUS_TAB = 'FOCUS_TAB';
 export const SELECT_TAB = 'SELECT_TAB';
+export const DOWNLOAD_FILE = 'DOWNLOAD_FILE';
 
 /*
  * action creators
@@ -78,4 +79,24 @@ export function focusTab(type, key) {
 
 export function selectTab(index) {
     return {type: SELECT_TAB, index};
+}
+
+export function makeDownloadFile(tth) {
+    return (dispatch, getState) => {
+        const state = getState();
+        const ws = state.socket;
+        const any = state.files.getIn([tth, 'users']).entries().next();
+        console.log('any: ', any);
+        const nick = any.value[0];
+        const fileName = any.value[1].get(0);
+        const msg = {
+            type: 'DOWNLOAD_FILE',
+            tth,
+            nick,
+            fileName,
+            size: state.files.getIn([tth, 'size']).toString()
+        };
+        console.log('Sending message: ', msg);
+        ws.send(JSON.stringify(msg));
+    };
 }

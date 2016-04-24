@@ -14,6 +14,7 @@ const SearchResultList = ({tths}) => (
           <TableHeaderColumn>Name</TableHeaderColumn>
           <TableHeaderColumn>Users</TableHeaderColumn>
           <TableHeaderColumn>Size</TableHeaderColumn>
+          <TableHeaderColumn>Download</TableHeaderColumn>
         </TableRow>
       </TableHeader>
       <TableBody>
