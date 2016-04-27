@@ -63,9 +63,9 @@ export function receiveSearchResults(results) {
 export function newTab(name, type, key) {
     return {
         type: NEW_TAB,
-        name: name,
+        name,
         tabType: type,
-        key: key
+        key
     };
 }
 
@@ -74,7 +74,7 @@ export function newTabMaybe(name, type, key) {
 }
 
 export function focusTab(type, key) {
-    return {type: FOCUS_TAB, tabType: type, key: key};
+    return {type: FOCUS_TAB, tabType: type, key};
 }
 
 export function selectTab(index) {

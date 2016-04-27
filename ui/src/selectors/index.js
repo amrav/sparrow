@@ -32,7 +32,7 @@ export const makeTthToDisplayName = () => {
                         frequencies[name] += 1;
                     }
                     if (mostFrequent === null || frequencies[name] > mostFrequent.value) {
-                        mostFrequent = {value: frequencies[name], name: name};
+                        mostFrequent = {value: frequencies[name], name};
                     }
                 }
             }
@@ -52,7 +52,7 @@ export const makeTthToUsers = () => {
             return Object.keys(users);
             for (let nick of Object.keys(users)) {
                 users.push({
-                    nick: nick,
+                    nick,
                     filenames: users[nick]
                 });
             }
