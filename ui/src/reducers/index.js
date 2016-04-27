@@ -186,14 +186,21 @@ const users = (state = fromJS({}), action) => {
         let timer = profiler.start('users');
         // console.log('users reducer started');
         let newState = state;
-        action.actions.map(act => newState = newState.update(
-            act.username,
-            (user = fromJS({})) => user
-                .set('freeSlots', act.freeSlots)
-                .set('totalSlots', act.totalSlots)
-        ));
-        timer.stop();
-        return newState;
+        let users = {};
+        action.actions.map(act => {
+            users[act.username] = {
+                freeSlots: act.freeSlots,
+                totalSlots: act.totalSlots
+            };
+        });
+        if (state.size === 0) {
+            timer.stop();
+            return fromJS(users);
+        } else {
+            newState = state.merge(users);
+            timer.stop();
+            return newState;
+        }
     }
     default:
         return state;
