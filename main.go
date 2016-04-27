@@ -9,9 +9,12 @@ import (
 	"github.com/amrav/sparrow/client"
 	"github.com/amrav/sparrow/proto"
 	"github.com/amrav/sparrow/server"
+
+	"github.com/pkg/profile"
 )
 
 func main() {
+	defer profile.Start().Stop()
 	c := client.New()
 	c.StartActiveMode()
 	c.SetNick(proto.GenerateRandomUsername())
