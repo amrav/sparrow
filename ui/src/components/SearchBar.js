@@ -22,7 +22,7 @@ const SearchBarComp = ({fields: {searchText}, handleSubmit}) => (
 
 SearchBarComp.propTypes = {
     fields: PropTypes.shape({
-        searchText: PropTypes.string.isRequired
+        searchText: PropTypes.object.isRequired
     }).isRequired,
     handleSubmit: PropTypes.func.isRequired
 };

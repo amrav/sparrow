@@ -6,14 +6,15 @@ import { makeTthToDisplayName, makeTthToUsers, makeHumanFileSize } from '../sele
 import DownloadButton from './DownloadButton';
 
 const SearchResultComp = ({tth, displayName, users, size}) => (
-    <TableRow hoverable={true}>
+/*    <TableRow hoverable={true}>
       <TableRowColumn>{displayName}</TableRowColumn>
       <TableRowColumn>
         {truncate(users)}
       </TableRowColumn>
       <TableRowColumn>{size}</TableRowColumn>
       <TableRowColumn><DownloadButton tth={tth}></DownloadButton></TableRowColumn>
-    </TableRow>
+ </TableRow>*/
+    <li>{displayName} {truncate(users)} {size}</li>
 );
 
 SearchResultComp.propTypes = {

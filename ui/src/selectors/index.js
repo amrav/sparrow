@@ -17,8 +17,13 @@ export const makeTthToDisplayName = () => {
         getTth, getFilesForTth,
         (tth, files) => {
             let timer = profiler.start('tthToDisplayName');
-            files = files.toJS();
             // fileMemo[tth] = files;
+            let path = files.get('users').first().first();
+            let parts = path.split('\\');
+            let name = parts[parts.length - 1];
+            timer.stop('tthToDisplayName');
+            return name;
+
             let frequencies = {};
             let mostFrequent = null;
             for (let nick of Object.keys(files.users)) {

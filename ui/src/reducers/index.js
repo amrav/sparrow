@@ -2,7 +2,7 @@ import { combineReducers } from 'redux';
 import * as actions from '../actions';
 import { reducer as formReducer } from 'redux-form';
 import newSocket from '../socket';
-import { fromJS } from 'immutable';
+import immutable, { fromJS } from 'immutable';
 import { profiler } from '../instrumentation';
 
 const initialMessagesState = fromJS({
@@ -36,26 +36,37 @@ const messages = (state = initialMessagesState, action) => {
     }
 };
 
+const matchSearchWithFilename = (searchTerms, fileName) => {
+    for (let st of searchTerms) {
+        if (fileName.indexOf(st) === -1) {
+            return false;
+        }
+    }
+    return true;
+};
+
 const searches = (state = fromJS({}), action) => {
     switch(action.type) {
     case actions.NEW_SEARCH:
-        return state.set(action.searchText, fromJS({results: []}));
+        return state.setIn([action.searchText, 'results'], new immutable.Set());
     case actions.RECEIVE_SEARCH_RESULT: {
         let timer = profiler.start('searches');
         let newState = state;
-        for (let act of action.actions) {
-            newState.keySeq().filter(
-                // sequence of all search texts that would match search result
-                st => act.name.toLowerCase().indexOf(st.toLowerCase()) !== -1
-            ).map(st => {
-                // Push TTH into results of each search text, if not
-                // already present
-                newState = newState.updateIn(
-                    [st, 'results'],
-                    res => res.contains(act.tth)? res : res.push(act.tth)
-                );
-            }).cacheResult(); // force evaluation
-        }
+        newState.keySeq().map(st => {
+            const terms = st.split(" ");
+            // Push TTH into results of each search text, if not
+            // already present
+            const res = newState.getIn([st, 'results']).withMutations(res => {
+                for (let act of action.actions) {
+                    if (!matchSearchWithFilename(terms, act.name))
+                        continue;
+                    if (!res.contains(act.tth)) {
+                        res.add(act.tth);
+                    }
+                }
+            });
+            newState = newState.setIn([st, 'results'], res);
+        }).cacheResult(); // force evaluation
         timer.stop('searches');
         return newState;
     }

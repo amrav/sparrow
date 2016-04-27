@@ -53,9 +53,6 @@ const selectedIndex = (state) => {
 };
 
 const mapStateToProps = (state) => {
-    console.log('mapping state to props: ', state);
-    const st = selectTabs(state);
-    console.log('selected tabs: ', st);
     return {
         tabs: selectTabs(state),
         selectedIndex: selectedIndex(state)
