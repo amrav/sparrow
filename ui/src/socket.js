@@ -2,16 +2,23 @@ import { store } from './index';
 import { newTabMaybe } from './actions';
 import { RECEIVE_MESSAGE, RECEIVE_PRIVATE_MESSAGE } from './actions';
 import { profiler } from './instrumentation';
+import Perf from 'react-addons-perf';
 
 const dispatchMessage = (msg) => {
-    let timer = profiler.start('dispatchMessage');
+    // let timer = profiler.start('dispatchMessage');
+    Perf.start();
     if (msg.type === RECEIVE_MESSAGE) {
         store.dispatch(newTabMaybe('Hub', 'hubMessages', ''));
     } else if (msg.type === RECEIVE_PRIVATE_MESSAGE) {
         store.dispatch(newTabMaybe(msg.from, 'privateMessages', msg.from));
     }
     store.dispatch(msg);
-    timer.stop('dispatchMessage');
+    Perf.stop();
+    const measurements = Perf.getLastMeasurements();
+    // Perf.printInclusive(measurements);
+    Perf.printExclusive(measurements);
+    Perf.printWasted(measurements);
+    // timer.stop('dispatchMessage');
 };
 
 const newSocket = () => {

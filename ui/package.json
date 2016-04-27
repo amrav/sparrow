@@ -26,6 +26,7 @@
     "gulp-eslint": "^2.0.0",
     "gulp-sourcemaps": "^2.0.0-alpha",
     "livereactload": "^2.2.2",
+    "react-addons-perf": "^15.0.1",
     "react-proxy": "^1.1.8",
     "reactify": "^1.1.1",
     "vinyl-buffer": "^1.0.0",
