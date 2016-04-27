@@ -40,7 +40,6 @@ class Profiler {
             let elapsed = that.profiles.get(funcName);
             that.profiles.set(funcName, elapsed + timer.elapsed);
         }};
-        return timer;
     }
     reset() {
         this.profiles.clear();

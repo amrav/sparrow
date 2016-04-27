@@ -23,15 +23,13 @@ const TabWindowComp = ({tabs, handleSelect, selectedIndex}) => (
 TabWindowComp.propTypes = {
     tabs: PropTypes.arrayOf(PropTypes.shape({
         name: PropTypes.string.isRequired,
-/*        comp: PropTypes.oneOfType([
-            PropTypes.instanceOf(ChatWindow),
-            PropTypes.instanceOf(SearchWindow)
-        ]).isRequired, */
         key: PropTypes.oneOfType([
             PropTypes.string,
             PropTypes.object
         ])
-    })).isRequired
+    })).isRequired,
+    handleSelect: PropTypes.func.isRequired,
+    selectedIndex: PropTypes.number.isRequired
 };
 
 const tabsFromState = (state) => {
@@ -64,7 +62,7 @@ const tabsFromState = (state) => {
 };
 
 const handleSelect = (dispatch) => {
-    return (index, last) => {
+    return (index) => {
         dispatch(selectTab(index));
     };
 };

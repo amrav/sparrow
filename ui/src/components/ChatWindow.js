@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 import ChatMessageList from './ChatMessageList';
 import ChatTextBox from './ChatTextBox';
 

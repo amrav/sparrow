@@ -1,3 +1,5 @@
+/* eslint-disable no-unreachable */
+
 import { createSelector } from 'reselect';
 import { fromJS } from 'immutable';
 import { profiler } from '../instrumentation';

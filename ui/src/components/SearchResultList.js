@@ -18,7 +18,7 @@ const SearchResultList = ({tths}) => (
         </TableRow>
       </TableHeader>
       <TableBody>
-        {tths.map((tth, idx)=>
+        {tths.map((tth)=>
           <SearchResult key={tth} tth={tth}/>
         )}
       </TableBody>

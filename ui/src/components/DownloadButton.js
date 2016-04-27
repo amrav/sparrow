@@ -1,5 +1,5 @@
 import { connect } from 'react-redux';
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { makeDownloadFile } from '../actions';
 
 const DownloadButtonComp = ({onClick}) => (
@@ -15,6 +15,10 @@ const mapDispatchToProps = (dispatch, props) => {
             dispatch(makeDownloadFile(props.tth));
         }
     };
+};
+
+DownloadButtonComp.propTypes = {
+    onClick: PropTypes.func.isRequired
 };
 
 const DownloadButton = connect(

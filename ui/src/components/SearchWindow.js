@@ -15,6 +15,11 @@ const mapStateToProps = (state, { searchText }) => {
     };
 };
 
+SearchWindowComp.propTypes = {
+    searchText: PropTypes.string.isRequired,
+    tths: PropTypes.arrayOf(PropTypes.string).isRequired
+};
+
 const SearchWindow = connect(
     mapStateToProps
 )(SearchWindowComp);

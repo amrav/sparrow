@@ -5,7 +5,7 @@ import TableRowColumn from 'material-ui/lib/table/table-row-column';
 import { makeTthToDisplayName, makeTthToUsers, makeHumanFileSize } from '../selectors';
 import DownloadButton from './DownloadButton';
 
-const SearchResultComp = ({tth, displayName, users, size, onDownload}) => (
+const SearchResultComp = ({tth, displayName, users, size}) => (
     <TableRow hoverable={true}>
       <TableRowColumn>{displayName}</TableRowColumn>
       <TableRowColumn>

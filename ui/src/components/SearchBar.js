@@ -8,7 +8,7 @@ const submit = ({searchText}, dispatch) => {
     dispatch(focusTab('search', searchText));
 };
 
-let SearchBarComp = ({fields: {searchText}, handleSubmit}) => (
+const SearchBarComp = ({fields: {searchText}, handleSubmit}) => (
     <div>
       <form onSubmit={handleSubmit(submit)}>
         <input
@@ -19,6 +19,13 @@ let SearchBarComp = ({fields: {searchText}, handleSubmit}) => (
       </form>
     </div>
 );
+
+SearchBarComp.propTypes = {
+    fields: PropTypes.shape({
+        searchText: PropTypes.string.isRequired
+    }).isRequired,
+    handleSubmit: PropTypes.func.isRequired
+};
 
 const SearchBar = reduxForm({
     form: 'searchBar',
