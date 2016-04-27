@@ -8,7 +8,7 @@ import TableBody from 'material-ui/lib/table/table-body';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
 const SearchResultList = ({tths}) => (
-/*    <Table selectable={false}>
+    <Table selectable={false}>
       <TableHeader displaySelectAll={false}>
         <TableRow>
           <TableHeaderColumn>Name</TableHeaderColumn>
@@ -17,20 +17,12 @@ const SearchResultList = ({tths}) => (
           <TableHeaderColumn>Download</TableHeaderColumn>
         </TableRow>
       </TableHeader>
- <TableBody>*/
-    <ul>
+      <TableBody>
         {tths.map((tth)=>
           <SearchResult key={tth} tth={tth} />
         )}
-    </ul>
-
-    /*<ul>
-        {tths.map((tth)=>
-          <li key={tth}>{tth}</li>
-        )}
-    </ul>*/
-/*      </TableBody>
-    </Table>*/
+      </TableBody>
+    </Table>
 );
 
 SearchResultList.propTypes = {
