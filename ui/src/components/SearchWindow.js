@@ -10,14 +10,9 @@ const SearchWindowComp = ({searchText, tths}) => (
     </div>
 );
 
-let oldResults = null;
-
 const mapStateToProps = (state, { searchText }) => {
-    let results = state.searches.getIn([searchText, 'results']);
-    console.log('old tth === new tth: ', oldResults === results, '-', results.size);
-    oldResults = results;
     return {
-        tths: results
+        tths: state.searches.getIn([searchText, 'results'])
     };
 };
 

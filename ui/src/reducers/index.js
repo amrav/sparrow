@@ -106,25 +106,74 @@ const tabs = (state = fromJS({tabList: []}), action) => {
     }
 };
 
-// Files are indexed by TTH, and have an array of UserFiles,
-// which are instances of a file owned by different users,
-// possibly with different names, and in different file paths.
+// Similar to fromJS, but also converts JS Sets to Immutable Sets
+const fromJSToFileImmutable = (js) => {
+    return typeof js !== 'object' || js === null? js:
+        Array.isArray(js) ?
+        immutable.Seq(js).map(fromJSToFileImmutable).toList():
+        js instanceof Set ?
+        immutable.Seq(js).map(fromJSToFileImmutable).toSet():
+        immutable.Seq(js).map(fromJSToFileImmutable).toMap();
+};
 
+// Files are indexed by TTH, and are further indexed by user,
+// since there are instances of a file owned by different users,
+// possibly with different names, and in different file paths.
 const files = (state = fromJS({}), action) => {
     switch(action.type) {
     case actions.RECEIVE_SEARCH_RESULT: {
         let timer = profiler.start('files');
-        let newState = state;
-        action.actions.map(act => newState = newState.update(
-            act.tth,
+        let newState = {};
+        action.actions.map(act => {
+            if (!newState.hasOwnProperty(act.tth)) {
+                newState[act.tth] = {users: {}, size: act.size};
+            }
+            if (!newState[act.tth].users.hasOwnProperty(act.username)) {
+                newState[act.tth].users[act.username] = new Set();
+            }
+            newState[act.tth].users[act.username].add(act.name);
+        });
+
+        if (state.size === 0) {
+            timer.stop();
+            return fromJSToFileImmutable(newState);
+        }
+
+        // TODO: Figure out why merge is so much slower than fromJS, and fix
+        newState = state.withMutations(state => {
+
+            for (let tth in newState) {
+
+                if (!state.has(tth)) {
+                    state.set(tth, fromJS({users: {}, size: newState[tth].size}));
+                }
+                let users = state.getIn([tth, 'users']).withMutations(users => {
+                    for (let user in newState[tth].users) {
+                        if (!users.has(user)) {
+                            users.set(user, new immutable.Set());
+                        }
+                        let files = users.get(user).withMutations(files => {
+                            files.union(newState[tth].users[user]);
+                        });
+                        users.set(user, files);
+                    }
+                });
+                state.setIn([tth, 'users'], users);
+            }
+        });
+        // newState = state.mergeDeep(fromJSToFileImmutable(newState));
+        // console.log('Returning new state: ', newState);
+        timer.stop();
+        return newState;
+/*            act.tth,
             (o = fromJS({users: {}, size: act.size})) => o
         ).updateIn(
             [act.tth, 'users', act.username],
             (files = fromJS([])) => files.contains(act.name) ?
                 files : files.push(act.name)
         ));
-        timer.stop();
-        return newState;
+
+        return newState;*/
     }
     default:
         return state;
