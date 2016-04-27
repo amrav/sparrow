@@ -51,8 +51,8 @@ function compile(watch) {
 
     var bundler = watchify(
             browserify('./src/index.js', {...watchify.args, browserifyOpts}))
-            .transform(babel.configure(babelConfig))
-            .plugin('livereactload');
+            .transform(babel.configure(babelConfig));
+            // .plugin('livereactload');
 
     function rebundle() {
         log('Bundling...');
