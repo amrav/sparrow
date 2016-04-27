@@ -7,6 +7,7 @@ import browserify from 'browserify';
 import watchify from 'watchify';
 import babel from 'babelify';
 import chalk from 'chalk';
+import eslint from 'gulp-eslint';
 
 const log = (msg) => {
     const t = /T([0-9:.]+)Z/g.exec(new Date().toISOString())[1];
@@ -16,6 +17,13 @@ const log = (msg) => {
         chalk.cyan(msg)
     );
 };
+
+gulp.task('lint', () => {
+    return gulp.src(['**/*.js', '!node_modules/**', '!build/**'])
+        .pipe(eslint())
+        .pipe(eslint.formatEach())
+        .pipe(eslint.failAfterError());
+});
 
 const babelConfig = {
     plugins: ["transform-object-rest-spread"],
@@ -75,7 +83,7 @@ function watch() {
     return compile(true);
 };
 
-gulp.task('build', function() { return compile(); });
+gulp.task('build', ['lint'], function() { return compile(); });
 gulp.task('watch', function() { return watch(); });
 
 gulp.task('default', ['watch']);
