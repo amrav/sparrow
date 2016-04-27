@@ -5,7 +5,7 @@ import { selectTab } from '../actions';
 import { selectTabs } from '../selectors/tabs';
 
 const TabWindowComp = ({tabs, handleSelect, selectedIndex}) => (
-    <Tabs onSelect={handleSelect} selectedIndex={selectedIndex}>
+    <Tabs onSelect={handleSelect} selectedIndex={selectedIndex} forceRenderTabPanel>
       <TabList>
         {tabs.map((tab) =>
           <Tab key={tab.key}>{tab.name}</Tab>

@@ -5,6 +5,8 @@ import SearchWindow from '../components/SearchWindow.js';
 
 const getTabs = (state) => state.tabs;
 
+// TODO: Investigate whether this is the best way to generate
+// tabbed windows. Currently, this recreates props on every tab select.
 export const selectTabs = createSelector(
     [getTabs],
     (tabs) => {
@@ -23,7 +25,6 @@ export const selectTabs = createSelector(
             } else {
                 throw new Error('unknown tab type');
             }
-            console.log('pushed:', elem);
             compTabs.push(elem);
         });
         return compTabs;
