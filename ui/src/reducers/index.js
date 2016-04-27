@@ -7,8 +7,7 @@ import { profiler } from '../instrumentation';
 
 const initialMessagesState = fromJS({
     hubMessages: [],
-    privateMessages: {},
-    activeTabs: []
+    privateMessages: {}
 });
 
 const socket = (state = newSocket) => {
@@ -65,22 +64,23 @@ const searches = (state = fromJS({}), action) => {
     }
 };
 
+// TODO: Convert tabs to use Immutable fully
 const tabs = (state = fromJS({tabList: []}), action) => {
     switch(action.type) {
     case actions.NEW_TAB_MAYBE: {
         let tabExists = state.get('tabList').find(
-            ({type, key}) => type === action.tabType && key === action.key
+            t => t.get('type') === action.tabType && t.get('key') === action.key
         );
         if (tabExists) {
             return state;
         }
     } // fallthrough
     case actions.NEW_TAB:
-        return state.update('tabList', l => l.push({
+        return state.update('tabList', l => l.push(fromJS({
             name: action.name,
             type: action.tabType,
             key:  action.key
-        }));
+        })));
     case actions.FOCUS_TAB:
         return state.set('focused', {
             type: action.tabType,

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import ChatMessageList from './ChatMessageList';
 import ChatTextBox from './ChatTextBox';
+import { connect } from 'react-redux';
 
 const ChatWindow = ({chatMessages}) => (
     <div>
@@ -10,8 +11,24 @@ const ChatWindow = ({chatMessages}) => (
     </div>
 );
 
-ChatWindow.propTypes = {
-    ...ChatMessageList.propTypes.chatMessages
+const mapStateToProps = (state, props) => {
+    let messages;
+    if (props.messagesKey === 'hubMessages') {
+        messages = state.messages.get('hubMessages');
+    } else {
+        messages = state.messages.getIn(['privateMessages', props.messagesKey]) || [];
+    }
+    return {
+        chatMessages: messages,
+        ...props
+    };
 };
 
-export default ChatWindow;
+ChatWindow.propTypes = {
+    chatMessages: ChatMessageList.propTypes.chatMessages,
+    messagesKey: PropTypes.string.isRequired
+};
+
+export default connect(
+    mapStateToProps
+)(ChatWindow);

@@ -1,9 +1,8 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import ChatWindow from './ChatWindow.js';
-import SearchWindow from './SearchWindow.js';
 import { selectTab } from '../actions';
+import { selectTabs } from '../selectors/tabs';
 
 const TabWindowComp = ({tabs, handleSelect, selectedIndex}) => (
     <Tabs onSelect={handleSelect} selectedIndex={selectedIndex}>
@@ -32,35 +31,6 @@ TabWindowComp.propTypes = {
     selectedIndex: PropTypes.number.isRequired
 };
 
-const tabsFromState = (state) => {
-    let stateTabs = state.tabs.toJS();
-    let messages = state.messages.toJS();
-    let tabs = [];
-    for (var i = 0; i < stateTabs.tabList.length; i++) {
-        const tab = stateTabs.tabList[i];
-        if (tab.type === 'hubMessages') {
-            tabs.push({
-                name: tab.name,
-                comp: <ChatWindow chatMessages={messages.hubMessages} />,
-                key: tab.key
-            });
-        } else if (tab.type === 'privateMessages') {
-            tabs.push({
-                name: tab.name,
-                comp: <ChatWindow chatMessages={messages.privateMessages[tab.key] || []} />,
-                key: tab.key
-            });
-        } else if (tab.type === 'search') {
-            tabs.push({
-                name: tab.name,
-                comp: <SearchWindow searchText={tab.key}/>,
-                key: tab.key
-            });
-        }
-    }
-    return tabs;
-};
-
 const handleSelect = (dispatch) => {
     return (index) => {
         dispatch(selectTab(index));
@@ -83,8 +53,11 @@ const selectedIndex = (state) => {
 };
 
 const mapStateToProps = (state) => {
+    console.log('mapping state to props: ', state);
+    const st = selectTabs(state);
+    console.log('selected tabs: ', st);
     return {
-        tabs: tabsFromState(state),
+        tabs: selectTabs(state),
         selectedIndex: selectedIndex(state)
     };
 };
