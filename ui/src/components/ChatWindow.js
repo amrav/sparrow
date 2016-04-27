@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import ChatMessageList from './ChatMessageList';
 import ChatTextBox from './ChatTextBox';
 import { connect } from 'react-redux';
+import { fromJS } from 'immutable';
 
 const ChatWindow = ({chatMessages}) => (
     <div>
@@ -16,7 +17,7 @@ const mapStateToProps = (state, props) => {
     if (props.messagesKey === 'hubMessages') {
         messages = state.messages.get('hubMessages');
     } else {
-        messages = state.messages.getIn(['privateMessages', props.messagesKey]) || [];
+        messages = state.messages.getIn(['privateMessages', props.messagesKey]) || fromJS([]);
     }
     return {
         chatMessages: messages,
