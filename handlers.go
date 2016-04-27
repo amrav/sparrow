@@ -79,7 +79,7 @@ func HandleSearchResults(c *client.Client, sendCh chan interface{},
 	resultsCh := make(chan proto.SearchResult)
 	go c.SearchResults(resultsCh, done)
 	var srsBatch []proto.SearchResult
-	var debounceCh <-chan time.Time
+	var timeoutCh <-chan time.Time
 	const MAX_BATCH_SIZE = 1000
 
 	sendBatchedSearchResults := func() {
@@ -92,26 +92,27 @@ func HandleSearchResults(c *client.Client, sendCh chan interface{},
 		default:
 			log.Fatalf("Unable to send result %+v to sendCh", srs)
 		}
+		// Reset timeout channel. This will
+		// be set the next time a search result comes in.
+		timeoutCh = nil
 		// allow sent search results to be GC-d
 		srsBatch = nil
-		// Don't wait for debounce signal. This will
-		// be set the next time a search result comes in.
-		debounceCh = nil
 	}
 	for {
 		select {
 		case <-done:
 			return
-		case <-debounceCh:
+		case <-timeoutCh:
 			log.Printf("Sending batched search results after timer")
 			sendBatchedSearchResults()
 		case res := <-resultsCh:
+			if srsBatch == nil {
+				timeoutCh = time.After(500 * time.Millisecond)
+			}
 			srsBatch = append(srsBatch, res)
 			if len(srsBatch) == MAX_BATCH_SIZE {
 				log.Printf("Sending batched search results after capacity")
 				sendBatchedSearchResults()
-			} else {
-				debounceCh = time.After(1 * time.Second)
 			}
 			// log.Printf("Got search result: %+v", res)
 		}
