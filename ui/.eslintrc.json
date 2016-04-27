@@ -1,0 +1,11 @@
+{
+    "parser": "babel-eslint",
+    "plugins": [
+	"babel"
+    ],
+    "rules": {
+	"babel/object-shorthand": 1,
+	"strict": 1
+    },
+    "warnFileIgnored": true
+}
