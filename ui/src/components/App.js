@@ -17,6 +17,9 @@ const styles = {
         overflow: 'hidden',
         boxSizing: 'border-box',
         marginLeft: '350px'
+    },
+    base: {
+        fontFamily: 'Lato, "Open Sans"'
     }
 };
 
@@ -30,7 +33,7 @@ const App = () => (
         </div>
       </div>
  </div> */
-    <div>
+    <div style={styles.base}>
       <NavPane />
       <div style={styles.main}>
         <SearchBar />

@@ -19,7 +19,8 @@ const messages = (state = initialMessagesState, action) => {
     case actions.RECEIVE_MESSAGE:
         return state.updateIn(['hubMessages'], msgs => msgs.push({
             from: action.from,
-            text: action.text
+            text: action.text,
+            time: Date.now()
         }));
     case actions.RECEIVE_PRIVATE_MESSAGE: {
         let newState = state;
@@ -28,7 +29,8 @@ const messages = (state = initialMessagesState, action) => {
         }
         return newState.updateIn(['privateMessages', action.from], msgs => msgs.push({
             from: action.from,
-            text: action.text
+            text: action.text,
+            time: Date.now()
         }));
     }
     default:

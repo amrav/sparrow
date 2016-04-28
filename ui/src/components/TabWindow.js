@@ -4,8 +4,15 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { selectTab } from '../actions';
 import { selectTabs } from '../selectors/tabs';
 
+const styles = {
+    base: {
+        marginTop: '100px'
+    }
+};
+
 const TabWindowComp = ({tabs, handleSelect, selectedIndex}) => (
-    <Tabs onSelect={handleSelect} selectedIndex={selectedIndex} forceRenderTabPanel>
+    <div style={styles.base}>
+        <Tabs onSelect={handleSelect} selectedIndex={selectedIndex} forceRenderTabPane>
       <TabList>
         {tabs.map((tab) =>
           <Tab key={tab.key}>{tab.name}</Tab>
@@ -17,6 +24,7 @@ const TabWindowComp = ({tabs, handleSelect, selectedIndex}) => (
         </TabPanel>
       )}
     </Tabs>
+        </div>
 );
 
 TabWindowComp.propTypes = {
