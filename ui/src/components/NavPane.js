@@ -46,7 +46,8 @@ const styles = {
         margin: 0,
         padding: 0,
         overflow: 'scroll',
-        color: '#CCC'
+        color: '#CCC',
+        fontWeight: 300
     },
     noMargin: {
         margin: "0px",
