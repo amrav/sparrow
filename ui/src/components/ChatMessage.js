@@ -1,12 +1,15 @@
 import React, { PropTypes } from 'react';
 
-const msgStyle = {
-    whiteSpace: 'pre'
+const styles = {
+    li: {
+        whiteSpace: 'pre-wrap',
+        marginRight: '40px'
+    }
 };
 
 const ChatMessage = ({from, text}) => (
-    <li style={msgStyle}>
-      <strong><em>{from}:</em></strong> {text}
+    <li style={styles.li}>
+      <strong><em>{from}:</em></strong> <span style={styles.text}>{text}</span>
     </li>
 );
 

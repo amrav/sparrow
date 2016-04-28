@@ -16,7 +16,7 @@ const styles = {
         display: 'block',
         overflow: 'hidden',
         boxSizing: 'border-box',
-        marginLeft: '350px'
+        margin: '0px 0px 0px 350px'
     },
     base: {
         fontFamily: 'Lato, "Open Sans"'
