@@ -11,7 +11,10 @@ const styles = {
 const ChatMessageList = ({chatMessages}) => (
     <ul style={styles.ul}>
       {chatMessages.map((msg, idx)=>
-        <ChatMessage {...msg} key={idx}/>
+       <ChatMessage {...msg}
+          key={idx}
+          displayFrom={chatMessages.get(idx-1).from !== msg.from}
+       />
       )}
     </ul>
 );
