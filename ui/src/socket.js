@@ -1,5 +1,5 @@
 import { store } from './index';
-import { newTabMaybe } from './actions';
+import { newTabMaybe, focusTab } from './actions';
 import { RECEIVE_MESSAGE, RECEIVE_PRIVATE_MESSAGE } from './actions';
 import { profiler } from './instrumentation';
 import Perf from 'react-addons-perf';

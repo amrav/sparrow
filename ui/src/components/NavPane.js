@@ -41,6 +41,7 @@ const styles = {
         backgroundColor: colors.cdg,
         position: 'fixed',
         top: 0,
+        left: 0,
         width: '350px',
         margin: 0,
         padding: 0,

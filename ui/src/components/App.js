@@ -1,5 +1,6 @@
 import React from 'react';
-import TabWindow from './TabWindow';
+// import TabWindow from './TabWindow';
+import MainPane from './MainPane';
 import SearchBar from './SearchBar';
 import NavPane from './NavPane';
 
@@ -14,12 +15,12 @@ const styles = {
     },
     main: {
         display: 'block',
-        overflow: 'hidden',
         boxSizing: 'border-box',
         margin: '0px 0px 0px 350px'
     },
     base: {
-        fontFamily: 'Lato, "Open Sans"'
+        fontFamily: 'Lato, "Open Sans"',
+        position: 'relative'
     }
 };
 
@@ -37,7 +38,7 @@ const App = () => (
       <NavPane />
       <div style={styles.main}>
         <SearchBar />
-        <TabWindow />
+        <MainPane />
       </div>
     </div>
 );

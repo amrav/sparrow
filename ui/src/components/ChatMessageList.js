@@ -2,8 +2,14 @@ import React, { PropTypes } from 'react';
 import ChatMessage from './ChatMessage';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
+const styles = {
+    ul: {
+        listStyle: 'none'
+    }
+};
+
 const ChatMessageList = ({chatMessages}) => (
-    <ul>
+    <ul style={styles.ul}>
       {chatMessages.map((msg, idx)=>
         <ChatMessage {...msg} key={idx}/>
       )}

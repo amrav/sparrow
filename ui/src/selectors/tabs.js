@@ -10,23 +10,25 @@ const getTabs = (state) => state.tabs;
 export const selectTabs = createSelector(
     [getTabs],
     (tabs) => {
-        let compTabs = [];
-        tabs.get('tabList').map(tab => {
-            const elem = {
-                name: tab.get('name'),
-                key: tab.get('key')
-            };
-            if (tab.get('type') === 'hubMessages') {
-                elem.comp = <ChatWindow messagesKey={'hubMessages'} />;
-            } else if (tab.get('type') === 'privateMessages') {
-                elem.comp = <ChatWindow messagesKey={elem.key || []} />;
-            } else if (tab.get('type') === 'search') {
-                elem.comp = <SearchWindow searchText={elem.key}/>;
-            } else {
-                throw new Error('unknown tab type');
-            }
-            compTabs.push(elem);
-        });
-        return compTabs;
+        let focused = tabs.get('focused');
+        let tab = tabs.get('tabList')
+                .find(x =>
+                      x.get('type') === focused.type &&
+                      x.get('key') === focused.key);
+        if (tabs.get('tabList').size === 0) {
+            return <p></p>;
+        }
+        if (!tab) {
+            tab = tabs.get('tabList').first();
+        }
+        if (tab.get('type') === 'hubMessages') {
+            return <ChatWindow messagesKey={'hubMessages'} />;
+        } else if (tab.get('type') === 'privateMessages') {
+            return <ChatWindow messagesKey={tab.get('key')} />;
+        } else if (tab.get('type') === 'search') {
+            return <SearchWindow searchText={tab.get('key')}/>;
+        } else {
+            throw new Error('unknown tab type');
+        }
     }
 );

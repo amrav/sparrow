@@ -19,8 +19,10 @@ const colors = {
 
 const styles = {
     base: {
-        width: '100%',
+        marginLeft: '350px',
         top: 0,
+        right: 0,
+        left: 0,
         position: 'fixed',
         backgroundColor: '#FFF',
         height: '100px',
@@ -29,8 +31,8 @@ const styles = {
     },
     searchBox: {
         position: 'absolute',
-        right: '350px',
-        margin: '10px',
+        right: '30px',
+        margin: '20px 10px 10px 10px',
         fontSize: '2em',
         padding: '10px',
         borderRadius: '10px',
@@ -43,8 +45,7 @@ const styles = {
             outline: 'none',
             boxShadow: '0px 0px 2px 0px ' + colors.cs
         },
-        width: '500px',
-        marginTop: '20px'
+        width: '500px'
     }
 };
 

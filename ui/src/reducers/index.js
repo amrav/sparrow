@@ -4,6 +4,7 @@ import { reducer as formReducer } from 'redux-form';
 import newSocket from '../socket';
 import immutable, { fromJS } from 'immutable';
 import { profiler } from '../instrumentation';
+import moment from 'moment';
 
 const initialMessagesState = fromJS({
     hubMessages: [],
@@ -20,7 +21,7 @@ const messages = (state = initialMessagesState, action) => {
         return state.updateIn(['hubMessages'], msgs => msgs.push({
             from: action.from,
             text: action.text,
-            time: Date.now()
+            time: moment().format('LT')
         }));
     case actions.RECEIVE_PRIVATE_MESSAGE: {
         let newState = state;
@@ -30,7 +31,7 @@ const messages = (state = initialMessagesState, action) => {
         return newState.updateIn(['privateMessages', action.from], msgs => msgs.push({
             from: action.from,
             text: action.text,
-            time: Date.now()
+            time: moment().format('LT')
         }));
     }
     default:
@@ -79,6 +80,7 @@ const searches = (state = fromJS({}), action) => {
 
 // TODO: Convert tabs to use Immutable fully
 const tabs = (state = fromJS({tabList: []}), action) => {
+    let newState = state;
     switch(action.type) {
     case actions.NEW_TAB_MAYBE: {
         let tabExists = state.get('tabList').find(
@@ -88,14 +90,20 @@ const tabs = (state = fromJS({tabList: []}), action) => {
             return state;
         }
     } // fallthrough
-    case actions.NEW_TAB:
-        return state.update('tabList', l => l.push(fromJS({
+    case actions.NEW_TAB: {
+        newState = state.update('tabList', l => l.push(fromJS({
             name: action.name,
             type: action.tabType,
             key:  action.key
         })));
+        if (newState.get('tabList').size > 1) {
+            return newState;
+        } else {
+            // fallthrough
+        }
+    }
     case actions.FOCUS_TAB:
-        return state.set('focused', {
+        return newState.set('focused', {
             type: action.tabType,
             key: action.key
         });
