@@ -13,12 +13,12 @@ export default function configureStore (initialState) {
         batchedSubscribe(batchedUpdates)
     ));
 
-    /*if (module.onReload) {
+    if (module.onReload) {
         module.onReload(() => {
-            const nextRootReducer = require('../reducers').default;
-            store.replaceReducer(nextRootReducer);
+            const nextReducer = require('../reducers');
+            store.replaceReducer(nextReducer.default || nextReducer);
             return true;
         });
-    }*/
+    }
     return store;
 }

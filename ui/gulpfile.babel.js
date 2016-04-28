@@ -51,8 +51,8 @@ function compile(watch) {
 
     var bundler = watchify(
             browserify('./src/index.js', {...watchify.args, browserifyOpts}))
-            .transform(babel.configure(babelConfig));
-            // .plugin('livereactload');
+            .transform(babel.configure(babelConfig))
+            .plugin('livereactload');
 
     function rebundle() {
         log('Bundling...');
@@ -83,7 +83,7 @@ function watch() {
     return compile(true);
 }
 
-gulp.task('build', function() { return compile(); });
-gulp.task('watch', function() { return watch(); });
+gulp.task('build', () => compile());
+gulp.task('watch', () => watch());
 
 gulp.task('default', ['watch']);
