@@ -86,29 +86,28 @@ const items = {
 
 const keys = ['Chat Messages', 'Searches', 'Downloads'];
 
-const styleElem = (idx) => {
-    let st = {
+const styleTabItem = (tab, focusedTab) => {
+    const st = {
         ...styles.menuItem,
         ...styles.li
     };
-    return st;
-    /*if (key === 'Chat Messages' && idx === 0) {
+    if (tab === focusedTab) {
         return {...st, ...styles.active};
     } else {
         return st;
-    }*/
+    }
 };
 
-const NavPaneComp = ({ messageTabs }) => (
+const NavPaneComp = ({ messageTabs, focused }) => (
     <div className="col-md-2" style={{...styles.noMargin, ...styles.pane}}>
         <h2 style={{...styles.menuItem, ...styles.banner}}>Sparrow</h2>
         <div>
           <h3 style={styles.sectionHeader}>Messages</h3>
           <ul style={styles.ul}>
-          {messageTabs.map((item, idx) => (
-              <li key={'li' + item.get('name') + idx} style={styleElem(idx)}>
+          {messageTabs.map((tab, idx) => (
+              <li key={'li' + tab.get('name') + idx} style={styleTabItem(tab, focused)}>
                   <a href="#" key={idx} style={styles.a}>
-                    {item.get('name')}
+                    {tab.get('name')}
                   </a>
               </li>
           ))}
@@ -117,17 +116,23 @@ const NavPaneComp = ({ messageTabs }) => (
     </div>
 );
 
-NavPaneComp.propTypes = {
-    messageTabs: ImmutablePropTypes.listOf(ImmutablePropTypes.mapContains({
+const tabShape = {
         name: PropTypes.string.isRequired,
         type: PropTypes.string.isRequired,
         key: PropTypes.string.isRequired
-    })).isRequired
+};
+
+NavPaneComp.propTypes = {
+    messageTabs: ImmutablePropTypes.listOf(
+        ImmutablePropTypes.mapContains(tabShape)
+    ).isRequired,
+    focused: ImmutablePropTypes.mapContains(tabShape).isRequired
 };
 
 const mapStateToProps = (state) => {
     return {
-        messageTabs: state.tabs.get('messageTabs')
+        messageTabs: state.tabs.get('messageTabs'),
+        focused: state.tabs.get('focused')
     };
 };
 
