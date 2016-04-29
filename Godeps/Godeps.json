@@ -16,6 +16,11 @@
 			"Rev": "56b76bdf51f7708750eac80fa38b952bb9f32639"
 		},
 		{
+			"ImportPath": "github.com/pkg/profile",
+			"Comment": "v1.0.0-1-g19396ec",
+			"Rev": "19396ecfda37c1c9ddaa52019adca59d582e4832"
+		},
+		{
 			"ImportPath": "golang.org/x/net/websocket",
 			"Rev": "8968c61983e8f51a91b8c0ef25bf739278c89634"
 		},
