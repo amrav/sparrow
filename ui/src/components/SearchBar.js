@@ -1,8 +1,8 @@
 import React, { PropTypes } from 'react';
+import { connect } from 'react-redux';
 import Radium from 'radium';
 import { reduxForm } from 'redux-form';
 import { fetchSearchResults, newTabMaybe, focusTab } from '../actions';
-
 const submit = ({searchText}, dispatch) => {
     dispatch(fetchSearchResults(searchText));
     dispatch(newTabMaybe(`Search results: ${searchText}`, 'search', searchText));
@@ -45,12 +45,23 @@ const styles = {
             outline: 'none',
             boxShadow: '0px 0px 2px 0px ' + colors.cs
         },
-        width: '500px'
+        width: '40%'
+    },
+    title: {
+        display: 'inline-block',
+        float: 'left',
+        position: 'relative',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        marginLeft: '10%',
+        fontSize: '2em',
+        fontWeight: 300
     }
 };
 
-const SearchBarComp = Radium(({fields: {searchText}, handleSubmit}) => (
+const SearchBarComp = Radium(({fields: {searchText}, handleSubmit, title}) => (
     <div style={styles.base}>
+      <div style={styles.title}>{title}</div>
       <form onSubmit={handleSubmit(submit)}>
         <input
            type="text"
@@ -69,9 +80,28 @@ SearchBarComp.propTypes = {
     handleSubmit: PropTypes.func.isRequired
 };
 
-const SearchBar = reduxForm({
+const getTitleFromState = (state) => {
+    const focused = state.tabs.get('focused');
+    if (!focused) {
+        return "";
+    } else if (focused.type === 'hubMessages') {
+        return 'Hub';
+    } else {
+        return focused.key;
+    }
+};
+
+const mapStateToProps = (state) => {
+    return {
+        title: getTitleFromState(state)
+    };
+};
+
+const SearchBar = connect(
+    mapStateToProps
+)(reduxForm({
     form: 'searchBar',
     fields: ['searchText']
-})(SearchBarComp);
+})(SearchBarComp));
 
 export default SearchBar;
