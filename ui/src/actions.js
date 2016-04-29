@@ -86,9 +86,8 @@ export function makeDownloadFile(tth) {
         const state = getState();
         const ws = state.socket;
         const any = state.files.getIn([tth, 'users']).entries().next();
-        console.log('any: ', any);
         const nick = any.value[0];
-        const fileName = any.value[1].get(0);
+        const fileName = any.value[1].first();
         const msg = {
             type: 'DOWNLOAD_FILE',
             tth,
