@@ -79,35 +79,56 @@ const searches = (state = fromJS({}), action) => {
     }
 };
 
+const findTab = (tabs, action) => {
+    const tabMatches = (tab) => {
+        return tab.get('type') === action.tabType && tab.get('key') === action.key;
+    };
+    const tab = tabs.get('tabList').find(tabMatches) ||
+              tabs.get('messageTabs').find(tabMatches);
+    return tab;
+};
+
 // TODO: Convert tabs to use Immutable fully
-const tabs = (state = fromJS({tabList: []}), action) => {
+const tabs = (state = fromJS({tabList: [], messageTabs: []}), action) => {
     let newState = state;
     switch(action.type) {
     case actions.NEW_TAB_MAYBE: {
-        let tabExists = state.get('tabList').find(
-            t => t.get('type') === action.tabType && t.get('key') === action.key
-        );
-        if (tabExists) {
+        if (findTab(state, action)) {
             return state;
         }
     } // fallthrough
     case actions.NEW_TAB: {
-        newState = state.update('tabList', l => l.push(fromJS({
+        let newTab = {
             name: action.name,
             type: action.tabType,
-            key:  action.key
-        })));
-        if (newState.get('tabList').size > 1) {
+            key: action.key
+        };
+        if (newTab.type === 'hubMessages') {
+            newState = state.update('messageTabs', l => l.unshift(fromJS(newTab)));
+        } else if (newTab.type === 'privateMessages') {
+            newState = state.update('messageTabs', l => l.push(fromJS(newTab)));
+        } else {
+            newState = state.update('tabList', l => l.push(fromJS({
+                name: action.name,
+                type: action.tabType,
+                key:  action.key
+            })));
+        }
+        if (newState.get('tabList').size + newState.get('messageTabs').size > 1) {
             return newState;
         } else {
             // fallthrough
         }
     }
-    case actions.FOCUS_TAB:
-        return newState.set('focused', {
-            type: action.tabType,
-            key: action.key
-        });
+    case actions.FOCUS_TAB: {
+        const focused = findTab(newState, action);
+        if (!focused) {
+            console.error('state: ', state);
+            console.error('action: ', action);
+            throw new Error('attempted to focus tab that doesn\'t exist');
+        }
+        return newState.set('focused', focused);
+    }
     case actions.SELECT_TAB: {
         const tab = state.getIn(['tabList', action.index]);
         return state.set('focused', tab);

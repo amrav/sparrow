@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
+import { connect } from 'react-redux';
 import Radium from 'radium';
 import color from 'color';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 
 const colors = {
     ss: '#99B898',
@@ -84,36 +86,53 @@ const items = {
 
 const keys = ['Chat Messages', 'Searches', 'Downloads'];
 
-const styleElem = (key, idx) => {
+const styleElem = (idx) => {
     let st = {
         ...styles.menuItem,
         ...styles.li
     };
-    if (key === 'Chat Messages' && idx === 0) {
+    return st;
+    /*if (key === 'Chat Messages' && idx === 0) {
         return {...st, ...styles.active};
     } else {
         return st;
-    }
+    }*/
 };
 
-const NavPane = () => (
+const NavPaneComp = ({ messageTabs }) => (
     <div className="col-md-2" style={{...styles.noMargin, ...styles.pane}}>
-      <ul style={styles.ul}>
         <h2 style={{...styles.menuItem, ...styles.banner}}>Sparrow</h2>
-        {keys.map((key, idx) => (
-            <div key={key}>
-              <h3 style={styles.sectionHeader}>{key}</h3>
-              {items[key].map((item, idx) => (
-                  <li key={'li' + key + idx} style={styleElem(key, idx)}>
-                    <a href="#" key={idx} style={styles.a}>
-                      {item}
-                    </a>
-                  </li>
-              ))}
-            </div>
-        ))}
-      </ul>
-     </div>
+        <div>
+          <h3 style={styles.sectionHeader}>Messages</h3>
+          <ul style={styles.ul}>
+          {messageTabs.map((item, idx) => (
+              <li key={'li' + item.get('name') + idx} style={styleElem(idx)}>
+                  <a href="#" key={idx} style={styles.a}>
+                    {item.get('name')}
+                  </a>
+              </li>
+          ))}
+          </ul>
+        </div>
+    </div>
 );
 
-export default Radium(NavPane);
+NavPaneComp.propTypes = {
+    messageTabs: ImmutablePropTypes.listOf(ImmutablePropTypes.mapContains({
+        name: PropTypes.string.isRequired,
+        type: PropTypes.string.isRequired,
+        key: PropTypes.string.isRequired
+    })).isRequired
+};
+
+const mapStateToProps = (state) => {
+    return {
+        messageTabs: state.tabs.get('messageTabs')
+    };
+};
+
+const NavPane = connect(
+    mapStateToProps
+)(Radium(NavPaneComp));
+
+export default NavPane;

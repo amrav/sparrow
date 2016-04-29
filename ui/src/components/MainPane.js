@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
-import { selectTabs } from '../selectors/tabs';
+import { getMainWindow } from '../selectors/tabs';
 
 const styles = {
     base: {
@@ -16,9 +16,13 @@ const MainPaneComp = ({component}) => (
     </div>
 );
 
+MainPaneComp.propTypes = {
+    component: PropTypes.element.isRequired
+};
+
 const mapStateToProps = (state) => {
     return {
-        component: selectTabs(state)
+        component: getMainWindow(state)
     };
 };
 
