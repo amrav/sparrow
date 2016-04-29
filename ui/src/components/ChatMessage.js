@@ -36,7 +36,7 @@ ChatMessage.propTypes = {
     from: PropTypes.string.isRequired,
     text: PropTypes.string.isRequired,
     time: PropTypes.string.isRequired,
-    displayFrom: PropTypes.boolean
+    displayFrom: PropTypes.bool
 };
 
 export default ChatMessage;

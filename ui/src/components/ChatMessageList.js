@@ -13,7 +13,7 @@ const ChatMessageList = ({chatMessages}) => (
       {chatMessages.map((msg, idx)=>
        <ChatMessage {...msg}
           key={idx}
-          displayFrom={chatMessages.get(idx-1).from !== msg.from}
+          displayFrom={!msg.previousSenderSame}
        />
       )}
     </ul>

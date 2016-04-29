@@ -21,7 +21,8 @@ const messages = (state = initialMessagesState, action) => {
         return state.updateIn(['hubMessages'], msgs => msgs.push({
             from: action.from,
             text: action.text,
-            time: moment().format('LT')
+            time: moment().format('LT'),
+            previousSenderSame: msgs.size > 0 && msgs.last().from === action.from
         }));
     case actions.RECEIVE_PRIVATE_MESSAGE: {
         let newState = state;
