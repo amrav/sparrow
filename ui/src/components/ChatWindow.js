@@ -6,7 +6,9 @@ import { fromJS } from 'immutable';
 import { findDOMNode } from 'react-dom';
 
 const styles = {
-
+    base: {
+        margin: "0px 0px 70px 0px"
+    }
 };
 
 class ChatWindowComp extends React.Component {

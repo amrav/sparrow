@@ -1,10 +1,9 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import Radium from 'radium';
-import color from 'color';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { focusTab } from '../actions';
-import { fromJS } from 'immutable';
+import NavPaneSection from './NavPaneSection';
 
 const colors = {
     ss: '#99B898',
@@ -15,31 +14,6 @@ const colors = {
 };
 
 const styles = {
-    ul: {
-        listStyleType: "none",
-        margin: 0,
-        padding: 0,
-        width: "100%",
-        backgroundColor: colors.cdg
-    },
-    li: {
-        color: '#CCC',
-        ':hover': {
-            backgroundColor: color(colors.cdg).lighten(0.2).hslString(),
-            color: '#CCC'
-        },
-        padding: 0
-    },
-    a: {
-        display: "block",
-        color: 'inherit',
-        padding: '10px 10px 10px 30px',
-        textDecoration: 'none',
-        margin: 0
-    },
-    menuItem: {
-        padding: "10px"
-    },
     pane: {
         height: '100%',
         backgroundColor: colors.cdg,
@@ -53,89 +27,48 @@ const styles = {
         color: '#CCC',
         fontWeight: 300
     },
-    noMargin: {
-        margin: "0px",
-        padding: "0px"
-    },
     banner: {
         color: '#EEE',
         fontFamily: '"Bariol Regular", Lato',
         fontWeight: 300,
         marginLeft: '20px',
-        fontSize: '2em'
-    },
-    sectionHeader: {
-        padding: '8px 0 8px 16px',
-        fontSize: '1em',
-        textTransform: 'uppercase',
-        marginTop: '40px',
-        color: '#DDD',
-        fontFamily: 'Lato',
-        fontWeight: 300
-    },
-    active: {
-        color: '#FFF',
-        backgroundColor: colors.mj,
-        ':hover': {}
+        fontSize: '2em',
+        padding: "10px"
     }
 };
 
-const items = {
-    'Chat Messages': ['Hub', 'PtokaX'],
-    'Searches': ['pirates of the caribbean', 'game of thrones'],
-    'Downloads': ['Game of Thrones - S06E01 - The Red Woman (720p) (25.04.16) [Cipher].mkv']
-};
-
-const keys = ['Chat Messages', 'Searches', 'Downloads'];
-
-const styleTabItem = (tab, focusedTab) => {
-    const st = {
-        ...styles.menuItem,
-        ...styles.li
-    };
-    if (tab === focusedTab) {
-        return {...st, ...styles.active};
-    } else {
-        return st;
-    }
-};
-
-const NavPaneComp = ({ messageTabs, focused, onLinkClick }) => (
-    <div className="col-md-2" style={{...styles.noMargin, ...styles.pane}}>
-        <h2 style={{...styles.menuItem, ...styles.banner}}>Sparrow</h2>
-        <div>
-          <h3 style={styles.sectionHeader}>Messages</h3>
-          <ul style={styles.ul}>
-          {messageTabs.map((tab, idx) => (
-              <li key={'li' + tab.get('name') + idx} style={styleTabItem(tab, focused)}>
-                <a href="#" key={idx} style={styles.a} onClick={onLinkClick(tab)}>
-                  {tab.get('name')}
-                </a>
-              </li>
-          ))}
-          </ul>
-        </div>
+const NavPaneComp = ({ messageTabs, searchTabs, focused, onLinkClick }) => (
+    <div style={styles.pane}>
+      <h2 style={styles.banner}>Sparrow</h2>
+      {messageTabs.size > 0 &&
+          <NavPaneSection
+                 tabs={messageTabs}
+                 focused={focused}
+                 onLinkClick={onLinkClick}
+                 header={"Messages"} />
+      }
+      {searchTabs.size > 0 &&
+          <NavPaneSection
+                 tabs={searchTabs}
+                 focused={focused}
+                 onLinkClick={onLinkClick}
+                 header={"Searches"} />
+      }
     </div>
 );
 
-const tabShape = {
-        name: PropTypes.string.isRequired,
-        type: PropTypes.string.isRequired,
-        key: PropTypes.string.isRequired
-};
-
 NavPaneComp.propTypes = {
-    messageTabs: ImmutablePropTypes.listOf(
-        ImmutablePropTypes.mapContains(tabShape)
-    ).isRequired,
+    searchTabs: ImmutablePropTypes.listOf(ImmutablePropTypes.map).isRequired,
+    messageTabs: ImmutablePropTypes.listOf(ImmutablePropTypes.map).isRequired,
     // focused isn't *required* because there may be no tabs at some point
-    focused: ImmutablePropTypes.mapContains(tabShape),
+    focused: ImmutablePropTypes.map,
     onLinkClick: PropTypes.func.isRequired
 };
 
 const mapStateToProps = (state) => {
     return {
         messageTabs: state.tabs.get('messageTabs'),
+        searchTabs: state.tabs.get('search'),
         focused: state.tabs.get('focused')
     };
 };

@@ -3,9 +3,10 @@ import { connect } from 'react-redux';
 import Radium from 'radium';
 import { reduxForm } from 'redux-form';
 import { fetchSearchResults, newTabMaybe, focusTab } from '../actions';
+
 const submit = ({searchText}, dispatch) => {
     dispatch(fetchSearchResults(searchText));
-    dispatch(newTabMaybe(`Search results: ${searchText}`, 'search', searchText));
+    dispatch(newTabMaybe(searchText, 'search', searchText));
     dispatch(focusTab('search', searchText));
 };
 
@@ -43,9 +44,11 @@ const styles = {
             border: '1px solid ' + colors.cs,
             borderRadius: '10px',
             outline: 'none',
-            boxShadow: '0px 0px 2px 0px ' + colors.cs
+            boxShadow: '0px 0px 2px 0px ' + colors.cs,
+            backgroundColor: '#FFF'
         },
-        width: '40%'
+        width: '40%',
+        backgroundColor: '#FFF'
     },
     title: {
         display: 'inline-block',
@@ -53,25 +56,37 @@ const styles = {
         position: 'relative',
         top: '50%',
         transform: 'translateY(-50%)',
-        marginLeft: '10%',
+        marginLeft: '5%',
         fontSize: '2em',
-        fontWeight: 300
+        fontWeight: 300,
+        maxWidth: '40%',
+        textAlign: 'left'
     }
 };
 
-const SearchBarComp = Radium(({fields: {searchText}, handleSubmit, title}) => (
+const styleTitle = (title) => {
+    if (title.length < 80) {
+        return styles.title;
+    } else {
+        // Haxx
+        return {...styles.title, fontSize: `${2 / Math.log(title.length / 20)}em`};
+    }
+};
+
+const SearchBarComp = ({fields: {searchText}, handleSubmit, title}) => (
     <div style={styles.base}>
-      <div style={styles.title}>{title}</div>
+      <div style={styleTitle(title)}>{title}</div>
       <form onSubmit={handleSubmit(submit)}>
         <input
            type="text"
            placeholder="Search"
            {...searchText}
            style={styles.searchBox}
+           autoComplete="off"
         />
       </form>
     </div>
-));
+);
 
 SearchBarComp.propTypes = {
     fields: PropTypes.shape({
@@ -84,6 +99,8 @@ const getTitleFromState = (state) => {
     const focused = state.tabs.get('focused');
     if (!focused) {
         return "";
+    } else if (focused.get('type') === 'search') {
+        return `Results for "${focused.get('name')}"`;
     } else {
         return focused.get('name');
     }
@@ -100,6 +117,6 @@ const SearchBar = connect(
 )(reduxForm({
     form: 'searchBar',
     fields: ['searchText']
-})(SearchBarComp));
+})(Radium(SearchBarComp)));
 
 export default SearchBar;

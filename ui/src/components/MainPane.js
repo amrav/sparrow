@@ -5,7 +5,7 @@ import { findDOMNode } from 'react-dom';
 
 const styles = {
     base: {
-        margin: "100px 0px 70px 0px",
+        margin: "100px 0px 0px 0px",
         overflowY: 'scroll',
         height: 'auto'
     }

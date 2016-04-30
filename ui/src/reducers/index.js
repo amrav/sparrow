@@ -84,12 +84,13 @@ const findTab = (tabs, action) => {
         return tab.get('type') === action.tabType && tab.get('key') === action.key;
     };
     const tab = tabs.get('tabList').find(tabMatches) ||
-              tabs.get('messageTabs').find(tabMatches);
+              tabs.get('messageTabs').find(tabMatches) ||
+              tabs.get('search').find(tabMatches);
     return tab;
 };
 
 // TODO: Convert tabs to use Immutable fully
-const tabs = (state = fromJS({tabList: [], messageTabs: []}), action) => {
+const tabs = (state = fromJS({tabList: [], messageTabs: [], search: []}), action) => {
     let newState = state;
     switch(action.type) {
     case actions.NEW_TAB_MAYBE: {
@@ -107,6 +108,8 @@ const tabs = (state = fromJS({tabList: [], messageTabs: []}), action) => {
             newState = state.update('messageTabs', l => l.unshift(fromJS(newTab)));
         } else if (newTab.type === 'privateMessages') {
             newState = state.update('messageTabs', l => l.push(fromJS(newTab)));
+        } else if (newTab.type === 'search') {
+            newState = state.update('search', l => l.push(fromJS(newTab)));
         } else {
             newState = state.update('tabList', l => l.push(fromJS({
                 name: action.name,
@@ -114,10 +117,10 @@ const tabs = (state = fromJS({tabList: [], messageTabs: []}), action) => {
                 key:  action.key
             })));
         }
-        if (newState.get('tabList').size + newState.get('messageTabs').size > 1) {
+        if (state.has('focused')) {
             return newState;
         } else {
-            // fallthrough
+            // fallthrough and focus this new tab
         }
     }
     case actions.FOCUS_TAB: {

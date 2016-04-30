@@ -3,9 +3,8 @@ import { connect } from 'react-redux';
 import SearchResultList from './SearchResultList';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
-const SearchWindowComp = ({searchText, tths}) => (
+const SearchWindowComp = ({tths}) => (
     <div>
-      <div><h1>Search results: "{searchText}"</h1></div>
       <SearchResultList tths={tths} />
     </div>
 );
