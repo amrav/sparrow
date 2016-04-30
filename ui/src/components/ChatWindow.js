@@ -10,6 +10,10 @@ const styles = {
 };
 
 class ChatWindowComp extends React.Component {
+    // this.shouldScrollBottom holds logic for whether the chat window
+    // should be scrolled when a new message arrives.
+    // TODO: Fix because scroll position is held by MainPane, not this
+    // component.
     componentWillUpdate() {
         const node = findDOMNode(this);
         this.shouldScrollBottom = node.scrollTop + node.offsetHeight === node.scrollHeight;
