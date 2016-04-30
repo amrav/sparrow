@@ -32,7 +32,8 @@ const messages = (state = initialMessagesState, action) => {
         return newState.updateIn(['privateMessages', action.from], msgs => msgs.push({
             from: action.from,
             text: action.text,
-            time: moment().format('LT')
+            time: moment().format('LT'),
+            previousSenderSame: msgs.size > 0 && msgs.last().from === action.from
         }));
     }
     default:

@@ -3,8 +3,9 @@ import React, { PropTypes } from 'react';
 const styles = {
     li: {
         whiteSpace: 'pre-wrap',
-        marginTop: '10px',
-        display: 'block'
+        display: 'block',
+        paddingBottom: '10px',
+        marginRight: '20px'
     },
     time: {
         color: '#BBB',
