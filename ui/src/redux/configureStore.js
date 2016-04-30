@@ -9,7 +9,7 @@ export default function configureStore (initialState) {
     console.log(rootReducer);
     const store = createStore(rootReducer, initialState, compose(
         applyMiddleware(thunk),
-        // window.devToolsExtension ? window.devToolsExtension() : f => f
+        window.devToolsExtension ? window.devToolsExtension() : f => f,
         batchedSubscribe(batchedUpdates)
     ));
 
