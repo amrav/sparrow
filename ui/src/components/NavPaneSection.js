@@ -25,12 +25,12 @@ const styles = {
             backgroundColor: color(colors.cdg).lighten(0.2).hslString(),
             color: '#CCC'
         },
-        padding: "10px"
+        padding: 0
     },
     a: {
         display: "block",
         color: 'inherit',
-        padding: '10px 10px 10px 30px',
+        padding: '20px 10px 20px 30px',
         textDecoration: 'none',
         margin: 0
     },
