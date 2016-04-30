@@ -84,10 +84,8 @@ const getTitleFromState = (state) => {
     const focused = state.tabs.get('focused');
     if (!focused) {
         return "";
-    } else if (focused.type === 'hubMessages') {
-        return 'Hub';
     } else {
-        return focused.key;
+        return focused.get('name');
     }
 };
 

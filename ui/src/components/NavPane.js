@@ -3,6 +3,8 @@ import { connect } from 'react-redux';
 import Radium from 'radium';
 import color from 'color';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { focusTab } from '../actions';
+import { fromJS } from 'immutable';
 
 const colors = {
     ss: '#99B898',
@@ -98,7 +100,7 @@ const styleTabItem = (tab, focusedTab) => {
     }
 };
 
-const NavPaneComp = ({ messageTabs, focused }) => (
+const NavPaneComp = ({ messageTabs, focused, onLinkClick }) => (
     <div className="col-md-2" style={{...styles.noMargin, ...styles.pane}}>
         <h2 style={{...styles.menuItem, ...styles.banner}}>Sparrow</h2>
         <div>
@@ -106,9 +108,9 @@ const NavPaneComp = ({ messageTabs, focused }) => (
           <ul style={styles.ul}>
           {messageTabs.map((tab, idx) => (
               <li key={'li' + tab.get('name') + idx} style={styleTabItem(tab, focused)}>
-                  <a href="#" key={idx} style={styles.a}>
-                    {tab.get('name')}
-                  </a>
+                <a href="#" key={idx} style={styles.a} onClick={onLinkClick(tab)}>
+                  {tab.get('name')}
+                </a>
               </li>
           ))}
           </ul>
@@ -126,7 +128,9 @@ NavPaneComp.propTypes = {
     messageTabs: ImmutablePropTypes.listOf(
         ImmutablePropTypes.mapContains(tabShape)
     ).isRequired,
-    focused: ImmutablePropTypes.mapContains(tabShape).isRequired
+    // focused isn't *required* because there may be no tabs at some point
+    focused: ImmutablePropTypes.mapContains(tabShape),
+    onLinkClick: PropTypes.func.isRequired
 };
 
 const mapStateToProps = (state) => {
@@ -136,8 +140,19 @@ const mapStateToProps = (state) => {
     };
 };
 
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onLinkClick: (tab) => {
+            return () => {
+                dispatch(focusTab(tab.get('type'), tab.get('key')));
+            };
+        }
+    };
+};
+
 const NavPane = connect(
-    mapStateToProps
+    mapStateToProps,
+    mapDispatchToProps
 )(Radium(NavPaneComp));
 
 export default NavPane;
