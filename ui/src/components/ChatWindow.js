@@ -3,14 +3,33 @@ import ChatMessageList from './ChatMessageList';
 import ChatTextBox from './ChatTextBox';
 import { connect } from 'react-redux';
 import { fromJS } from 'immutable';
+import { findDOMNode } from 'react-dom';
 
-const ChatWindow = ({chatMessages}) => (
-    <div>
-      <ChatMessageList chatMessages={chatMessages} />
-      <ChatTextBox />
-      <div></div>
-    </div>
-);
+const styles = {
+
+};
+
+class ChatWindowComp extends React.Component {
+    componentWillUpdate() {
+        const node = findDOMNode(this);
+        this.shouldScrollBottom = node.scrollTop + node.offsetHeight === node.scrollHeight;
+    }
+    componentDidUpdate() {
+        if (this.shouldScrollBottom) {
+            const node = findDOMNode(this);
+            node.scrollTop = node.scrollHeight;
+        }
+    }
+    render() {
+        return (
+            <div style={styles.base}>
+              <ChatMessageList chatMessages={this.props.chatMessages} />
+              <ChatTextBox />
+              <div></div>
+            </div>
+        );
+    }
+}
 
 const mapStateToProps = (state, props) => {
     let messages;
@@ -25,11 +44,13 @@ const mapStateToProps = (state, props) => {
     };
 };
 
-ChatWindow.propTypes = {
+ChatWindowComp.propTypes = {
     chatMessages: ChatMessageList.propTypes.chatMessages,
     messagesKey: PropTypes.string.isRequired
 };
 
-export default connect(
+const ChatWindow = connect(
     mapStateToProps
-)(ChatWindow);
+)(ChatWindowComp);
+
+export default ChatWindow;

@@ -143,8 +143,9 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         onLinkClick: (tab) => {
-            return () => {
+            return (e) => {
                 dispatch(focusTab(tab.get('type'), tab.get('key')));
+                e.preventDefault();
             };
         }
     };

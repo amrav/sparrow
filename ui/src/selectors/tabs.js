@@ -11,14 +11,29 @@ export const getMainWindow = createSelector(
     [getFocusedTab],
     (focused) => {
         if (!focused) {
-            return <div></div>;
+            return {
+                key: '#',
+                component: <div></div>
+            };
         }
+        const ret = {
+            key: focused.get('type') + '#' + focused.get('key')
+        };
         if (focused.get('type') === 'hubMessages') {
-            return <ChatWindow messagesKey={'hubMessages'} />;
+            return {
+                ...ret,
+                component: <ChatWindow messagesKey={'hubMessages'} />
+            };
         } else if (focused.get('type') === 'privateMessages') {
-            return <ChatWindow messagesKey={focused.get('key')} />;
+            return {
+                ...ret,
+                component: <ChatWindow messagesKey={focused.get('key')} />
+            }
         } else if (focused.get('type') === 'search') {
-            return <SearchWindow searchText={focused.get('key')}/>;
+            return {
+                ...ret,
+                component: <SearchWindow searchText={focused.get('key')}/>
+            }
         } else {
             throw new Error('unknown tab type');
         }

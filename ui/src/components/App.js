@@ -14,13 +14,13 @@ const styles = {
         padding: "0px"
     },
     main: {
-        display: 'block',
+        display: 'flex',
         boxSizing: 'border-box',
-        margin: '0px 0px 0px 350px'
+        margin: '0px 0px 0px 350px',
+        height: '100vh'
     },
     base: {
-        fontFamily: 'Lato, "Open Sans"',
-        position: 'relative'
+        fontFamily: 'Lato, "Open Sans"'
     }
 };
 
