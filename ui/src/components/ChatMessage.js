@@ -15,6 +15,9 @@ const styles = {
     from: {
         margin: '20px 0px 0px 0px',
         display: 'block'
+    },
+    text: {
+        fontSize: '0.9em'
     }
 };
 
