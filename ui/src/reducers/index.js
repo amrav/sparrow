@@ -42,8 +42,9 @@ const messages = (state = initialMessagesState, action) => {
 };
 
 const matchSearchWithFilename = (searchTerms, fileName) => {
+    const fn = fileName.toLowerCase();
     for (let st of searchTerms) {
-        if (fileName.indexOf(st) === -1) {
+        if (fn.indexOf(st) === -1) {
             return false;
         }
     }
@@ -58,7 +59,7 @@ const searches = (state = fromJS({}), action) => {
         let timer = profiler.start('searches');
         let newState = state;
         newState.keySeq().map(st => {
-            const terms = st.split(" ");
+            const terms = st.toLowerCase().split(" ");
             // Push TTH into results of each search text, if not
             // already present
             const res = newState.getIn([st, 'results']).withMutations(res => {
