@@ -68,7 +68,7 @@ func (s *Server) WsHandler(conn *websocket.Conn) {
 		for msg := range s.sendCh {
 			err := websocket.JSON.Send(s.conn, msg)
 			if err != nil {
-				log.Fatalf("Couldn't push data to websocket: %s", err)
+				log.Print("Couldn't push data to websocket:", err)
 			}
 		}
 	}()
@@ -79,20 +79,23 @@ func (s *Server) WsHandler(conn *websocket.Conn) {
 		for {
 			err := websocket.JSON.Receive(s.conn, &msg)
 			if err != nil {
-				log.Fatalf("Couldn't read data from websocket: %s", err)
+				log.Print("Couldn't read data from websocket, assuming client disconnected: ", err)
+				close(s.doneCh)
+				return
 			}
 			log.Printf("Received message: %s\n", msg)
 
 			if chs, ok := s.recvChs[msg["type"]]; ok {
 				for _, ch := range chs {
-					log.Printf("Trying to send on channel")
 					ch <- msg
-					log.Printf("Sent on channel")
 				}
 			}
 		}
 	}()
 
 	// Don't close websocket connection
-	select {}
+	select {
+	case <-s.doneCh:
+		return
+	}
 }
