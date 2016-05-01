@@ -391,6 +391,8 @@ func (c *Client) handleHubMessages() {
 				break loop
 			}
 		}
+		// TODO: hub listener only removed when message arrives
+		// from hub and done is closed. Need to unsubscribe async.
 		for _, hl := range hls {
 			select {
 			case <-hl.Done:

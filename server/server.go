@@ -75,11 +75,16 @@ func (s *Server) WsHandler(conn *websocket.Conn) {
 
 	// receiver
 	go func() {
-		var msg JsonMsg
 		for {
+			var msg JsonMsg
 			err := websocket.JSON.Receive(s.conn, &msg)
 			if err != nil {
 				log.Print("Couldn't read data from websocket, assuming client disconnected: ", err)
+				for _, chs := range s.recvChs {
+					for _, ch := range chs {
+						close(ch)
+					}
+				}
 				close(s.doneCh)
 				return
 			}

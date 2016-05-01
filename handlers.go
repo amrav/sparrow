@@ -14,10 +14,8 @@ import (
 
 func SendHubMessages(c *client.Client, sendCh chan interface{},
 	recvCh chan server.JsonMsg, done chan struct{}) {
-	doneCh := make(chan struct{})
-	defer close(doneCh)
 	chatRegexp := regexp.MustCompile(`(?s)^<(.+?)>\s(.+)\|$`)
-	ch := c.HubMessagesMatch(doneCh, chatRegexp)
+	ch := c.HubMessagesMatch(done, chatRegexp)
 	for msg := range ch {
 		matches := chatRegexp.FindSubmatch(msg)
 		if matches != nil {
@@ -29,21 +27,15 @@ func SendHubMessages(c *client.Client, sendCh chan interface{},
 			if strings.HasPrefix(msg["from"], "%") {
 				continue
 			}
-			select {
-			case sendCh <- msg:
-			case <-done:
-				return
-			}
+			sendCh <- msg
 		}
 	}
 }
 
 func SendPrivateMessages(c *client.Client, sendCh chan interface{},
 	recvCh chan server.JsonMsg, done chan struct{}) {
-	doneCh := make(chan struct{})
-	defer close(doneCh)
 	chatRegexp := regexp.MustCompile(`(?s)^\$To: (.+?) From: (.+?) \$<(.+?)>\s(.+)\|$`)
-	ch := c.HubMessagesMatch(doneCh, chatRegexp)
+	ch := c.HubMessagesMatch(done, chatRegexp)
 	for msg := range ch {
 		matches := chatRegexp.FindSubmatch(msg)
 		if matches != nil {
@@ -83,19 +75,16 @@ func HandleSearchResults(c *client.Client, sendCh chan interface{},
 	const MAX_BATCH_SIZE = 1000
 
 	sendBatchedSearchResults := func() {
-		// Copy batched search results into new slice,
-		// since it'll be overwritten by new results
-		srs := make([]proto.SearchResult, len(srsBatch), len(srsBatch))
-		copy(srs, srsBatch)
 		select {
-		case sendCh <- srs:
+		case sendCh <- srsBatch:
 		default:
-			log.Fatalf("Unable to send result %+v to sendCh", srs)
+			log.Fatalf("Unable to send result %+v to sendCh", srsBatch)
 		}
 		// Reset timeout channel. This will
 		// be set the next time a search result comes in.
 		timeoutCh = nil
-		// allow sent search results to be GC-d
+		// Make sure slice with new underlying array is initialized
+		// the next time to not overwrite results just sent.
 		srsBatch = nil
 	}
 	for {
