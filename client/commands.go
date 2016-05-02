@@ -1,8 +1,8 @@
 package client
 
 import (
-	"io/ioutil"
 	"log"
+	"os"
 	"os/user"
 	"path"
 	"regexp"
@@ -95,12 +95,24 @@ func (c *Client) SearchResults(srCh chan proto.SearchResult, doneCh chan struct{
 }
 
 func (c *Client) DownloadFile(name string, tth string, nick string, size uint64, progressCh chan int) {
+	defer close(progressCh)
 	done := make(chan struct{})
 	defer close(done)
 	ch := c.ClientMessages(nick, done)
 	c.MessageHub("$ConnectToMe %s %s:%d|", nick,
 		c.Active.Ip.String(), c.Active.Port)
 
+	downloaded := 0
+	usr, _ := user.Current()
+	file, err := os.Create(path.Join(usr.HomeDir, "DC-sparrow", name))
+	if err != nil {
+		log.Fatal("Couldn't open download file: ", err)
+	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Fatal("Couldn't close download file: ", err)
+		}
+	}()
 	for msg := range ch {
 		switch msg := msg.(type) {
 		case string:
@@ -109,16 +121,29 @@ func (c *Client) DownloadFile(name string, tth string, nick string, size uint64,
 				c.MsgClient(nick, "$ADCGET file TTH/%s 0 %d|", tth, size)
 			}
 		case []byte:
-			log.Printf("Got file: %d bytes", len(msg))
+			downloaded += len(msg)
+			log.Printf("Downloaded %s: (%d of %d bytes) (%d%%)", name,
+				downloaded, size, int(downloaded*100/int(size)))
 			if progressCh != nil {
-				close(progressCh)
+				select {
+				case progressCh <- downloaded:
+				default:
+					panic("Couldn't write to progressCh")
+				}
 			}
-			usr, _ := user.Current()
-			dir := usr.HomeDir
-			err := ioutil.WriteFile(path.Join(dir, "DC-sparrow", name), msg, 0644)
+			_, err := file.Write(msg)
 			if err != nil {
 				log.Fatal("Couldn't write file: ", err)
 			}
+			// TODO: Figure out whether to use uint64 or int
+			if downloaded == int(size) {
+				log.Printf("Download complete: %s (%d bytes)",
+					name, size)
+				return
+			}
 		}
+	}
+	if downloaded != int(size) {
+		log.Printf("Warning: Couldn't complete file download %s (%d bytes downloaded)", name, downloaded)
 	}
 }

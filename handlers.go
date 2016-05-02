@@ -117,10 +117,15 @@ func HandleDownloadFile(c *client.Client, sendCh chan interface{},
 				progressCh := make(chan int, 10)
 				size, _ := strconv.ParseUint(msg["size"], 10, 64)
 				go c.DownloadFile(msg["fileName"], msg["tth"], msg["nick"], size, progressCh)
-				select {
-				case <-progressCh:
-					log.Printf("Download complete")
-					return
+				var progress int
+				for progress = range progressCh {
+					if progress == int(size) {
+						log.Printf("Download complete")
+						return
+					}
+				}
+				if progress != int(size) {
+					// TODO: Handle download error
 				}
 			}()
 		}

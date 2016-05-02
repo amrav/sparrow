@@ -17,6 +17,10 @@ import (
 	"github.com/fatih/color"
 )
 
+const (
+	downloadBufferSize = 1024 * 1024
+)
+
 type Client struct {
 	Active struct {
 		Ip      net.IP
@@ -233,6 +237,7 @@ loop:
 	}
 
 	for _, cl := range cls {
+
 		select {
 		case <-cl.Done:
 			close(cl.Messages)
@@ -240,7 +245,7 @@ loop:
 		case cl.Messages <- msg:
 			listeners <- cl
 		case <-time.After(1 * time.Second):
-			log.Fatal("Error: wasn't able to write to client listener; dropping message after 2 seconds")
+			panic("Error: wasn't able to write to client listener; dropping message after 2 seconds")
 		}
 	}
 }
@@ -262,8 +267,9 @@ func (c *Client) handleActiveConn(conn net.Conn) {
 	for {
 		msg, err := reader.ReadString('|')
 		if err != nil {
-			log.Fatal("Error reading from TCP connection: ",
-				remote, " : ", err)
+			log.Printf("Error reading from TCP connection: %s: %s",
+				remote, err)
+			return
 		}
 		log.Print(blue("%s -> client: ", otherNick), msg)
 		if strings.HasPrefix(msg, "$MyNick ") {
@@ -283,6 +289,25 @@ func (c *Client) handleActiveConn(conn net.Conn) {
 				cls = c.clientListeners.m[otherNick]
 			}
 			c.clientListeners.Unlock()
+			defer func() {
+				// Remove the listener queue from nick-listener map
+				// so it can be GC'd
+				c.clientListeners.Lock()
+				delete(c.clientListeners.m, otherNick)
+				c.clientListeners.Unlock()
+				// Close the all the listeners' channels to notify
+				// them we're done
+			loop:
+				for {
+					select {
+					case l := <-cls:
+						close(l.Messages)
+					default:
+						break loop
+					}
+				}
+
+			}()
 
 			sendClient(conn, otherNick,
 				"$Lock EXTENDEDPROTOCOL/wut? Pk=gdc,Ref=10.109.49.49:411|")
@@ -306,30 +331,23 @@ func (c *Client) handleActiveConn(conn net.Conn) {
 				log.Fatal("Error parsing numBytes: ", err)
 			}
 			log.Printf("Downloading file: %d bytes", numBytes)
-			buf := make([]byte, numBytes)
-			_, err = io.ReadFull(reader, buf)
-			if err != nil {
-				log.Fatal("Couldn't download something: ", err)
-			}
-			log.Print("Finished downloading file")
-			publishToListeners(buf, cls)
-			publishToListeners(buf, all_cls)
-
-			// Remove the listener queue from nick-listener map
-			// so it can be GC'd
-			c.clientListeners.Lock()
-			delete(c.clientListeners.m, otherNick)
-			c.clientListeners.Unlock()
-			// Close the all the listeners' channels to notify
-			// them we're done
-		loop:
-			for {
-				select {
-				case l := <-cls:
-					close(l.Messages)
-				default:
-					break loop
+			downloaded := 0
+			for downloaded != numBytes {
+				var bufSize int
+				if downloadBufferSize < numBytes-downloaded {
+					bufSize = downloadBufferSize
+				} else {
+					bufSize = numBytes - downloaded
 				}
+				buf := make([]byte, bufSize)
+				bytesRead, err := io.ReadFull(reader, buf)
+				if err != nil {
+					log.Fatal("Couldn't download something: ", err)
+				}
+				downloaded += bytesRead
+				log.Printf("Got chunk: %d bytes", bytesRead)
+				publishToListeners(buf, cls)
+				publishToListeners(buf, all_cls)
 			}
 			// We're done with this active connection
 			return
