@@ -365,14 +365,23 @@ func (c *Client) Connect(hubAddr string) {
 			c.MessageHub(fmt.Sprintf("$MyINFO $ALL %s <gdc V:0.0.0,M:A,H:1/0/0,S:3>$ $10^Q$$%d$|", c.User.Nick, c.User.ShareSize))
 		}
 		if strings.HasPrefix(ms, "$Hello ") {
-			return
+			break
 		}
 	}
 }
 
+type timedConn struct {
+	*net.TCPConn
+}
+
+func (c *timedConn) Read(b []byte) (int, error) {
+	c.SetReadDeadline(time.Now().Add(60 * time.Second))
+	return c.TCPConn.Read(b)
+}
+
 func (c *Client) handleHubMessages() {
 	yellow := color.New(color.FgYellow).SprintfFunc()
-	reader := bufio.NewReader(c.hubConn)
+	reader := bufio.NewReader(&timedConn{c.hubConn.(*net.TCPConn)})
 	for {
 		msg, err := reader.ReadBytes(byte('|'))
 		if err != nil {
