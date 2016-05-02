@@ -34,8 +34,10 @@ func (c *Client) GetFileList(nick string) []byte {
 }
 
 func (c *Client) Search(searchString string) {
+	searchString = proto.Escape(searchString)
+	searchString = strings.Replace(searchString, " ", "$", -1)
 	c.MessageHub("$Search %s:%d F?T?0?1?%s|", c.Active.Ip.String(),
-		c.Active.UdpPort, proto.Escape(searchString))
+		c.Active.UdpPort, searchString)
 }
 
 func (c *Client) SearchResults(srCh chan proto.SearchResult, doneCh chan struct{}) {
